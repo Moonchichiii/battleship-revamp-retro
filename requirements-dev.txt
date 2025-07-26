@@ -1,9 +1,16 @@
 # Development Tools
-pytest==7.4.3
-pytest-asyncio==0.21.1
 black==23.11.0
 ruff==0.1.6
 mypy==1.7.0
+isort
+pytest==7.4.3
+pytest-asyncio==0.21.1
+coverage
 
 # Performance Testing
 locust==2.17.0
+
+# HTTP and Types
+httpx
+types-requests
+types-python-dateutil
