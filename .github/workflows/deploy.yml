@@ -3,6 +3,13 @@ name: Deploy to Render
 on:
   push:
     branches: [main]
+    paths:
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - ".github/workflows/deploy.yml"
+      - "src/**"
+      - "static/**"
+      - "templates/**"
 
 jobs:
   deploy:
@@ -19,15 +26,14 @@ jobs:
       - name: Log in to Render Container Registry
         env:
           REGISTRY: registry.render.com
-          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-        run: echo $RENDER_API_KEY | docker login $REGISTRY -u render -p $RENDER_API_KEY
+        run: echo "${RENDER_API_KEY}" | docker login $REGISTRY -u render --password-stdin
 
       - name: Build and Push Docker Image
         env:
           IMAGE: registry.render.com/${{ secrets.RENDER_SERVICE_ID }}/battleship-revamp
         run: |
-          docker build -t $IMAGE .
+          docker build --no-cache -t $IMAGE .
           docker push $IMAGE
 
       - name: Trigger Deploy on Render
