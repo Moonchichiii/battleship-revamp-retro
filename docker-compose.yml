@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: battleship-app
+    build:
+      context: .
+      dockerfile: Dockerfile.dev # Switch to Dockerfile for production
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=development
+    restart: unless-stopped
+    networks:
+      - battleship-net
+
+networks:
+  battleship-net:
+    driver: bridge
