@@ -1,23 +1,87 @@
-version: "3.8"
+# Docker Compose
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  pgadmin_password:
+    file: ./secrets/pgadmin_password.txt
+  app_secret_key:
+    file: ./secrets/app_secret_key.txt
 
 services:
   app:
     container_name: battleship-app
     build:
       context: .
-      dockerfile: Dockerfile.dev # Switch to Dockerfile for production
+      dockerfile: Dockerfile.dev
     ports:
       - "${PORT:-8000}:8000"
     volumes:
       - .:/app
+      - /app/venv
     env_file:
       - .env
     environment:
       - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}@db:5432/${POSTGRES_DB:-battleship_revamp}
+    secrets:
+      - app_secret_key
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - battleship-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-networks:
-  battleship-net:
-    driver: bridge
+  db:
+    image: postgres:17-alpine
+    container_name: battleship-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-battleship_revamp}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./scripts/init-dev-data.sql:/docker-entrypoint-initdb.d/99-dev-data.sql:ro
+    expose:
+      - "5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: battleship-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@battleship.dev}
+      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    secrets:
+      - pgadmin_password
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - dev
+      - development
+
+volumes:
+  postgres_data:
+  pgadmin_data:

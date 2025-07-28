@@ -4,7 +4,12 @@ __pycache__/
 *.so
 venv/
 env/
+
+# Environment Variables (NEVER COMMIT)
+.env
 .env.local
+.env.production
+.env.staging
 
 # Database
 *.db
@@ -31,3 +36,14 @@ htmlcov/
 
 # Docker
 .dockerignore
+
+# Secrets and Config
+secrets/
+config/local.*
+*.pem
+*.key
+
+# Security
+secrets/
+data/
+setup-security.ps1

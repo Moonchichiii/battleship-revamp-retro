@@ -1,16 +1,29 @@
-# Development Tools
-black==24.3.0
+# Code Quality
+black==25.1.0
 ruff>=0.5.3
-mypy==1.7.0
+mypy==1.17.0
 isort
-pytest==7.4.3
-pytest-asyncio==0.21.1
+
+# Testing
+pytest==8.4.1
+pytest-asyncio==1.1.0
 coverage
 
-# Performance Testing
-locust==2.17.0
+# DB Testing
+pytest-postgresql==6.0.0
+factory-boy==3.3.0
+faker==22.0.0
 
-# HTTP and Types
-httpx
+# Dev Tools
+pgcli==4.0.1
+psycopg2-binary==2.9.9
+
+# Performance
+locust==2.37.14
+
+# Type Stubs
 types-requests
 types-python-dateutil
+types-redis
+asyncpg-stubs
+sqlalchemy-stubs

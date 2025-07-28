@@ -4,6 +4,10 @@
 ![Docker Scout Scan](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/scan.yml/badge.svg)
 ![Render Deploy](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/deploy.yml/badge.svg)
 
+### Development Roadmap
+
+The complete project roadmap and development tracking can be found on the [Battleship Revamp 2025 GitHub Project Board](https://github.com/users/Moonchichiii/projects/43).
+
 A complete architectural overhaul of a Python terminal game, transformed into a production-ready web application featuring intelligent AI opponents, modern web technologies, and comprehensive CI/CD pipelines.
 
 ## Table of Contents
@@ -38,9 +42,6 @@ This project serves multiple constituencies:
 - **Technical Recruiters**: Demonstration of comprehensive software engineering skills across multiple domains
 - **Students**: Learning resource for game development, AI implementation, and web application architecture
 
-### Development Roadmap
-
-The complete project roadmap and development tracking can be found on the [Battleship Revamp 2025 GitHub Project Board](https://github.com/users/Moonchichiii/projects/1).
 
 ---
 

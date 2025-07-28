@@ -1,6 +1,10 @@
 fastapi
-uvicorn
+uvicorn[standard]
 httpx
 jinja2
 redis
-python-dotenv
+python-decouple
+asyncpg
+sqlalchemy
+alembic
+pydantic_core
