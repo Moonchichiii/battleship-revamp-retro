@@ -1,6 +1,6 @@
 # Development Tools
 black==23.11.0
-ruff==0.1.6
+ruff>=0.5.3
 mypy==1.7.0
 isort
 pytest==7.4.3
