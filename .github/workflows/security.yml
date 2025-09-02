@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 3 * * *" # nightly scan
 
 permissions:
   contents: read
@@ -25,9 +25,7 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.meta.outputs.tags }}
-      digest: ${{ steps.build.outputs.digest }}
-      tag: ${{ steps.pick.outputs.tag }}
+      tag: ${{ steps.pick.outputs.tag }} # single canonical tag for scanners
     steps:
       - uses: actions/checkout@v4
 
@@ -44,14 +42,13 @@ jobs:
       - name: Pick a single tag
         id: pick
         run: |
-          # Choose the first line from tags as our canonical tag
           echo "${{ steps.meta.outputs.tags }}" | head -n1 | awk '{print "tag="$0}' >> "$GITHUB_OUTPUT"
+          echo "Picked tag: $(echo "${{ steps.meta.outputs.tags }}" | head -n1)"
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build (local) and export digest
-        id: build
+      - name: Build (local) for scanning
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -65,6 +62,9 @@ jobs:
   trivy:
     runs-on: ubuntu-latest
     needs: build-image
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
       - name: Trivy scan (HIGH/CRITICAL fail)
@@ -86,6 +86,8 @@ jobs:
   docker-scout:
     runs-on: ubuntu-latest
     needs: build-image
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker
