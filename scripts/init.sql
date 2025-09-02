@@ -52,9 +52,9 @@ CREATE TABLE IF NOT EXISTS game_statistics (
     best_time_seconds INTEGER,
     average_time_seconds DECIMAL(10,2),
     win_rate DECIMAL(5,2) GENERATED ALWAYS AS (
-        CASE 
+        CASE
             WHEN games_played > 0 THEN ROUND((games_won::decimal / games_played) * 100, 2)
-            ELSE 0 
+            ELSE 0
         END
     ) STORED,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -134,16 +134,16 @@ END;
 $$ language 'plpgsql';
 
 -- Apply triggers to tables
-CREATE TRIGGER update_users_updated_at 
-    BEFORE UPDATE ON users 
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_games_updated_at 
-    BEFORE UPDATE ON games 
+CREATE TRIGGER update_games_updated_at
+    BEFORE UPDATE ON games
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_game_statistics_updated_at 
-    BEFORE UPDATE ON game_statistics 
+CREATE TRIGGER update_game_statistics_updated_at
+    BEFORE UPDATE ON game_statistics
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- INSERT DEFAULT ACHIEVEMENTS: Pre-populate achievements
@@ -166,15 +166,15 @@ RETURNS INTEGER AS $$
 DECLARE
     deleted_count INTEGER;
 BEGIN
-    DELETE FROM user_sessions 
+    DELETE FROM user_sessions
     WHERE expires_at < NOW() - INTERVAL '7 days';
-    
+
     GET DIAGNOSTICS deleted_count = ROW_COUNT;
-    
-    INSERT INTO game_statistics (player_id, difficulty_level, games_played) 
+
+    INSERT INTO game_statistics (player_id, difficulty_level, games_played)
     VALUES (NULL, 'system_cleanup', deleted_count)
     ON CONFLICT DO NOTHING;
-    
+
     RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;
@@ -190,8 +190,8 @@ CREATE OR REPLACE FUNCTION update_player_statistics(
 RETURNS VOID AS $$
 BEGIN
     INSERT INTO game_statistics (
-        player_id, 
-        difficulty_level, 
+        player_id,
+        difficulty_level,
         games_played,
         games_won,
         games_lost,
@@ -208,16 +208,16 @@ BEGIN
         p_duration,
         p_duration
     )
-    ON CONFLICT (player_id, difficulty_level) 
+    ON CONFLICT (player_id, difficulty_level)
     DO UPDATE SET
         games_played = game_statistics.games_played + 1,
         games_won = game_statistics.games_won + CASE WHEN p_won THEN 1 ELSE 0 END,
         games_lost = game_statistics.games_lost + CASE WHEN NOT p_won THEN 1 ELSE 0 END,
         total_moves = game_statistics.total_moves + p_moves,
-        best_time_seconds = CASE 
-            WHEN game_statistics.best_time_seconds IS NULL OR p_duration < game_statistics.best_time_seconds 
-            THEN p_duration 
-            ELSE game_statistics.best_time_seconds 
+        best_time_seconds = CASE
+            WHEN game_statistics.best_time_seconds IS NULL OR p_duration < game_statistics.best_time_seconds
+            THEN p_duration
+            ELSE game_statistics.best_time_seconds
         END,
         average_time_seconds = (
             (game_statistics.average_time_seconds * game_statistics.games_played) + p_duration
@@ -232,10 +232,10 @@ DECLARE
     table_count INTEGER;
 BEGIN
     SELECT COUNT(*) INTO table_count
-    FROM information_schema.tables 
-    WHERE table_schema = 'public' 
+    FROM information_schema.tables
+    WHERE table_schema = 'public'
     AND table_name IN ('users', 'games', 'game_statistics', 'achievements', 'user_achievements', 'user_sessions');
-    
+
     IF table_count = 6 THEN
         RAISE NOTICE 'Database schema initialized successfully - % tables created', table_count;
     ELSE

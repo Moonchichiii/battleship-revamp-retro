@@ -1,13 +1,13 @@
-{ 
-    "Servers": { 
-        "1": { 
-            "Name": "Battleship Database", 
-            "Group": "Development", 
-            "Host": "db", 
-            "Port": 5432, 
-            "MaintenanceDB": "battleship_revamp", 
-            "Username": "postgres", 
-            "SSLMode": "prefer" 
-        } 
-    } 
-} 
+{
+    "Servers": {
+        "1": {
+            "Name": "Battleship Database",
+            "Group": "Development",
+            "Host": "db",
+            "Port": 5432,
+            "MaintenanceDB": "battleship_revamp",
+            "Username": "postgres",
+            "SSLMode": "prefer"
+        }
+    }
+}

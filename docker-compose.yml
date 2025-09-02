@@ -1,4 +1,3 @@
-# Docker Compose
 secrets:
   postgres_password:
     file: ./secrets/postgres_password.txt
@@ -25,6 +24,7 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}@db:5432/${POSTGRES_DB:-battleship_revamp}
     secrets:
       - app_secret_key
+      - postgres_password
     depends_on:
       db:
         condition: service_healthy

@@ -1,6 +1,6 @@
 # Battleship Revamp 2025
 
-![Trivy Scan](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/trivy.yml/badge.svg)  
+![Trivy Scan](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/trivy.yml/badge.svg)
 ![Docker Scout Scan](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/scan.yml/badge.svg)
 ![Render Deploy](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/deploy.yml/badge.svg)
 
@@ -38,7 +38,7 @@ Originally conceived as a basic terminal game in 2022 with random AI opponents a
 This project serves multiple constituencies:
 
 - **Gaming Enthusiasts**: Players seeking intelligent opponents with varying difficulty levels and strategic depth
-- **Developers**: Those interested in AI algorithm implementation, full-stack architecture, and modern deployment practices  
+- **Developers**: Those interested in AI algorithm implementation, full-stack architecture, and modern deployment practices
 - **Technical Recruiters**: Demonstration of comprehensive software engineering skills across multiple domains
 - **Students**: Learning resource for game development, AI implementation, and web application architecture
 
@@ -83,7 +83,7 @@ The game features four distinct AI difficulty levels, each implementing differen
 - **Behavior**: Random targeting with basic pattern recognition
 - **Implementation**: Simple probability calculations with minimal state tracking
 
-### Veteran Level  
+### Veteran Level
 - **Algorithm**: Probability heatmap analysis
 - **Behavior**: Statistical targeting based on ship placement patterns
 - **Implementation**: Dynamic probability matrix updates based on historical hit data

@@ -1,0 +1,66 @@
+{% set size = board.size if board is defined else 8 %}
+<div class="grid" style="--size: {{ size }};">
+  {% for y in range(size) %} {% for x in range(size) %} {% set cell =
+  board.cells[y][x] if board is defined else {'hit': False, 'miss': False} %}
+  <button
+    class="cell {% if cell.hit %}hit{% elif cell.miss %}miss{% endif %}"
+    hx-post="/shot/{{ x }}/{{ y }}"
+    hx-target="#board"
+    hx-swap="innerHTML"
+    hx-include="[name='board-size']"
+    {%
+    if
+    cell.hit
+    or
+    cell.miss
+    %}disabled{%
+    endif
+    %}
+    aria-label="Shoot at position {{ x + 1 }}, {{ y + 1 }}"
+    data-x="{{ x }}"
+    data-y="{{ y }}"
+  >
+    {% if cell.hit %}×{% elif cell.miss %}•{% else %}&nbsp;{% endif %}
+  </button>
+  {% endfor %} {% endfor %}
+</div>
+
+<script>
+  // Update game stats after board render
+  document.addEventListener('DOMContentLoaded', function() {
+    updateGameStats();
+  });
+
+  function updateGameStats() {
+    const cells = document.querySelectorAll('.cell');
+    const hits = document.querySelectorAll('.cell.hit').length;
+    const misses = document.querySelectorAll('.cell.miss').length;
+    const shots = hits + misses;
+
+    // Estimate ships based on board size (rough calculation)
+    const boardSize = {{ size }};
+    const totalShips = Math.max(3, Math.floor(boardSize * 0.8)); // Rough estimate
+    const shipsRemaining = Math.max(0, totalShips - hits);
+
+    // Update stats display
+    const shotsEl = document.getElementById('shots-fired');
+    const hitsEl = document.getElementById('hits-count');
+    const shipsEl = document.getElementById('ships-remaining');
+
+    if (shotsEl) shotsEl.textContent = `Shots: ${shots}`;
+    if (hitsEl) hitsEl.textContent = `Hits: ${hits}`;
+    if (shipsEl) shipsEl.textContent = `Ships: ${shipsRemaining}`;
+
+    // Update status message
+    const statusEl = document.getElementById('status');
+    if (statusEl && shots === 0) {
+      statusEl.textContent = 'Click any cell to start shooting!';
+    } else if (statusEl && shots > 0) {
+      const accuracy = shots > 0 ? Math.round((hits / shots) * 100) : 0;
+      statusEl.textContent = `Accuracy: ${accuracy}% - Keep hunting for ships!`;
+    }
+  }
+
+  // Call updateGameStats after this template loads
+  setTimeout(updateGameStats, 100);
+</script>

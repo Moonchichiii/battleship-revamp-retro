@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', path='assets/favicon.svg') }}"
+    />
+    <link
+      rel="mask-icon"
+      href="{{ url_for('static', path='assets/favicon.svg') }}"
+      color="#00ff66"
+    />
+    <title>{% block title %}Battleship Revamp{% endblock %}</title>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', path='css/retro.css') }}"
+    />
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header" role="banner">
+      <div class="container">
+        <h1 class="brand">Battleship Revamp</h1>
+        <p class="tagline">
+          A modern take on Battleship using FastAPI and HTMX.
+        </p>
+      </div>
+    </header>
+
+    <nav class="nav" aria-label="Primary" role="navigation">
+      <div class="container">
+        <div
+          class="tabs"
+          id="primary-tabs"
+          role="tablist"
+          aria-orientation="horizontal"
+        >
+          <button
+            id="tab-home"
+            type="button"
+            class="tab {% if active_tab=='home' %}is-active{% endif %}"
+            hx-get="{{ url_for('home') }}"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+          >
+            Home
+          </button>
+
+          <button
+            id="tab-game"
+            type="button"
+            class="tab {% if active_tab=='game' %}is-active{% endif %}"
+            hx-get="{{ url_for('game') }}"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+          >
+            Play Game
+          </button>
+
+          <button
+            id="tab-scores"
+            type="button"
+            class="tab {% if active_tab=='scores' %}is-active{% endif %}"
+            hx-get="{{ url_for('scores') }}"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+          >
+            Top Scores
+          </button>
+
+          <button
+            id="tab-signin"
+            type="button"
+            class="tab {% if active_tab=='signin' %}is-active{% endif %}"
+            hx-get="{{ url_for('signin') }}"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+          >
+            Sign In
+          </button>
+
+          <button
+            id="tab-signup"
+            type="button"
+            class="tab {% if active_tab=='signup' %}is-active{% endif %}"
+            hx-get="{{ url_for('signup') }}"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+          >
+            Register
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main" class="container" role="main">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <div class="container">
+        <p>
+          &copy; 2025 Battleship Revamp —
+          <a
+            href="https://fastapi.tiangolo.com/"
+            target="_blank"
+            rel="noreferrer"
+            >FastAPI</a
+          >
+          &amp;
+          <a href="https://htmx.org/" target="_blank" rel="noreferrer">HTMX</a>.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // After HTMX swaps, keep the active tab in sync with the URL
+      document.addEventListener("htmx:afterSwap", function () {
+        const path = location.pathname;
+        const map = {
+          "/": "tab-home",
+          "/game": "tab-game",
+          "/scores": "tab-scores",
+          "/signin": "tab-signin",
+          "/signup": "tab-signup",
+        };
+        const activeId = map[path] || "tab-home";
+        document
+          .querySelectorAll(".tabs .tab")
+          .forEach((b) => b.classList.remove("is-active"));
+        const el = document.getElementById(activeId);
+        if (el) el.classList.add("is-active");
+      });
+    </script>
+  </body>
+</html>

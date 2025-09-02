@@ -1,0 +1,67 @@
+{% if request.headers.get("HX-Request") %}
+<section
+  id="signup"
+  class="panel is-active"
+  role="tabpanel"
+  aria-labelledby="tab-signup"
+>
+  <h2>Register</h2>
+  <form hx-post="/auth/register" hx-target="#signup" hx-swap="outerHTML">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required />
+
+    <label for="password">Password</label>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      required
+      minlength="6"
+    />
+
+    <label for="confirm">Confirm Password</label>
+    <input
+      type="password"
+      name="confirm_password"
+      id="confirm"
+      required
+      minlength="6"
+    />
+
+    <button type="submit" class="btn">Register</button>
+  </form>
+</section>
+{% else %} {% extends "base.html" %} {% block content %}
+<section
+  id="signup"
+  class="panel is-active"
+  role="tabpanel"
+  aria-labelledby="tab-signup"
+>
+  <h2>Register</h2>
+  <form hx-post="/auth/register" hx-target="#signup" hx-swap="outerHTML">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required />
+
+    <label for="password">Password</label>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      required
+      minlength="6"
+    />
+
+    <label for="confirm">Confirm Password</label>
+    <input
+      type="password"
+      name="confirm_password"
+      id="confirm"
+      required
+      minlength="6"
+    />
+
+    <button type="submit" class="btn">Register</button>
+  </form>
+</section>
+{% endblock %} {% endif %}

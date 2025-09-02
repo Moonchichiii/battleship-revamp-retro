@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <title>Retro Battleship Favicon</title>
+  <style>
+    :root{
+      --g:#00ff66;
+      --g-dark:#00cc52;
+      --g-soft:rgba(0,255,102,0.08);
+      --g-text-soft:#66ff99;
+      --bg:#000000;
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg:#001100; --g:#00cc44; }
+    }
+  </style>
+
+  <!-- Outer neon frame -->
+  <rect x="0" y="0" width="32" height="32" fill="var(--g)"/>
+  <rect x="2" y="2" width="28" height="28" fill="var(--bg)"/>
+
+  <!-- Subtle scan line for retro feel -->
+  <rect x="3" y="12" width="26" height="1" fill="var(--g-soft)"/>
+
+  <!-- Crosshair / radar target in the upper-right -->
+  <rect x="25" y="6" width="1" height="6" fill="var(--g)"/>
+  <rect x="22" y="9" width="6" height="1" fill="var(--g)"/>
+  <circle cx="25" cy="9" r="3" fill="var(--g)"/>
+  <circle cx="25" cy="9" r="2" fill="var(--bg)"/>
+
+  <!-- Battleship silhouette (pixel-snapped, filled for sharpness at small sizes) -->
+  <!-- Mast -->
+  <rect x="12" y="11" width="1" height="3" fill="var(--g)"/>
+  <!-- Bridge -->
+  <rect x="10" y="14" width="4" height="4" fill="var(--g)"/>
+  <!-- Hull -->
+  <rect x="6" y="18" width="18" height="4" fill="var(--g)"/>
+  <!-- Bow wedge -->
+  <polygon points="24,18 29,18 24,22" fill="var(--g)"/>
+
+  <!-- Tiny wake dots (keep very subtle, skip at tiny sizes) -->
+  <rect x="7" y="23" width="1" height="1" fill="var(--g-soft)"/>
+  <rect x="9" y="24" width="1" height="1" fill="var(--g-soft)"/>
+</svg>

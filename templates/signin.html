@@ -1,0 +1,59 @@
+{% if request.headers.get("HX-Request") %}
+<section
+  id="signin"
+  class="panel is-active"
+  role="tabpanel"
+  aria-labelledby="tab-signin"
+>
+  <h2>Sign In</h2>
+  <form hx-post="/auth/login" hx-target="#signin" hx-swap="outerHTML">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required />
+
+    <label for="password">Password</label>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      required
+      minlength="6"
+    />
+
+    <label>
+      <input type="checkbox" name="remember" />
+      Remember me
+    </label>
+
+    <button type="submit" class="btn">Sign In</button>
+  </form>
+</section>
+{% else %} {% extends "base.html" %} {% block content %}
+<section
+  id="signin"
+  class="panel is-active"
+  role="tabpanel"
+  aria-labelledby="tab-signin"
+>
+  <h2>Sign In</h2>
+  <form hx-post="/auth/login" hx-target="#signin" hx-swap="outerHTML">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required />
+
+    <label for="password">Password</label>
+    <input
+      type="password"
+      name="password"
+      id="password"
+      required
+      minlength="6"
+    />
+
+    <label>
+      <input type="checkbox" name="remember" />
+      Remember me
+    </label>
+
+    <button type="submit" class="btn">Sign In</button>
+  </form>
+</section>
+{% endblock %} {% endif %}
