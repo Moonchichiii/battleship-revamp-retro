@@ -9,12 +9,12 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from src.api.core.database import get_db  # noqa: TCH001
 from src.api.core.security import hash_password, verify_password
 from src.api.models.user import User
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -29,7 +29,7 @@ def login(
     password: Annotated[str, Form(...)],
     *,
     remember: Annotated[bool, Form(default=False)] = False,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[Session, Depends("get_db")],
 ) -> HTMLResponse:
     """HTMX login; verifies local password."""
     _ = remember
@@ -52,7 +52,7 @@ def register(
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
     confirm_password: Annotated[str, Form(...)],
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[Session, Depends("get_db")],
 ) -> HTMLResponse:
     """HTMX registration; stores Argon2 hash."""
     if password != confirm_password:
