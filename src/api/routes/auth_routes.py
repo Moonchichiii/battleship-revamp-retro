@@ -15,11 +15,12 @@ from src.api.models.user import User
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
-
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 ROOT = Path(__file__).resolve().parents[3]
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
+
+TPL_RESULT = "_auth_result.html"
 
 
 @router.post("/login", response_class=HTMLResponse)
@@ -28,20 +29,20 @@ def login(
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
     *,
-    remember: Annotated[bool, Form(default=False)] = False,
-    db: Annotated[Session, Depends("get_db")],
+    remember: Annotated[bool, Form()] = False,
+    db_session: Annotated[Session, Depends("get_db")],
 ) -> HTMLResponse:
-    """HTMX login; verifies local password."""
+    """Process sign-in and return an HTMX-friendly partial."""
     _ = remember
     user: User | None = (
-        db.query(User).filter(User.email == email.strip().lower()).first()
+        db_session.query(User).filter(User.email == email.strip().lower()).first()
     )
     ok = bool(
         user and user.password_hash and verify_password(password, user.password_hash),
     )
     msg = "Signed in!" if ok else "Invalid credentials."
     return templates.TemplateResponse(
-        "_auth_results.html",
+        TPL_RESULT,
         {"request": request, "ok": ok, "message": msg},
     )
 
@@ -52,30 +53,30 @@ def register(
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
     confirm_password: Annotated[str, Form(...)],
-    db: Annotated[Session, Depends("get_db")],
+    db_session: Annotated[Session, Depends("get_db")],
 ) -> HTMLResponse:
-    """HTMX registration; stores Argon2 hash."""
+    """Create a new user and return an HTMX-friendly partial."""
     if password != confirm_password:
         return templates.TemplateResponse(
-            "_auth_results.html",
+            TPL_RESULT,
             {"request": request, "ok": False, "message": "Passwords do not match."},
         )
 
     email_n = email.strip().lower()
-    if db.query(User).filter(User.email == email_n).first():
+    if db_session.query(User).filter(User.email == email_n).first():
         return templates.TemplateResponse(
-            "_auth_results.html",
+            TPL_RESULT,
             {"request": request, "ok": False, "message": "Email already registered."},
         )
 
     username = email_n.split("@", 1)[0]
     user = User(email=email_n, username=username, password_hash=hash_password(password))
-    db.add(user)
-    db.commit()
+    db_session.add(user)
+    db_session.commit()
 
     masked = f"{username}@…"
     return templates.TemplateResponse(
-        "_auth_results.html",
+        TPL_RESULT,
         {
             "request": request,
             "ok": True,
