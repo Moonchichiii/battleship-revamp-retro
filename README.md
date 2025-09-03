@@ -1,6 +1,6 @@
 # Battleship Revamp 2025
 
-[![CI](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/ci.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/ci.yml) [![Security](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/security.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/security.yml) [![Deploy to Render](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/deploy.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/actions/workflows/deploy.yml)
+[![CI](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/ci.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/ci.yml) [![Security](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/security.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/security.yml) [![Deploy to Render](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/deploy.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/deploy.yml)
 
 ## Development Roadmap
 
