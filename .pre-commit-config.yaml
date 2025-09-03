@@ -31,8 +31,16 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      - id: check-added-large-files
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: forbid-new-submodules
       - id: check-yaml
       - id: check-toml
       - id: check-json
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: name-tests-test
+      - id: no-commit-to-branch
+        args: [--branch, main]
