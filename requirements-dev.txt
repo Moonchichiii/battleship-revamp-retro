@@ -1,3 +1,5 @@
+-r requirements.txt
+
 # Code Quality
 black==25.1.0
 ruff==0.5.6
@@ -17,14 +19,12 @@ faker==22.0.0
 # Dev Tools
 pre-commit==4.0.1
 pgcli==4.0.1
-# Keep psycopg2-binary only if pgcli needs a system-specific lib on your machine;
-# otherwise you can remove it. pgcli usually works fine without pinning here.
 psycopg2-binary==2.9.9
 
 # Performance
 locust==2.37.14
 
-# Type Stubs (pin optional; letting pre-commit install types is fine too)
+# Type Stubs
 types-requests
 types-python-dateutil
 types-redis

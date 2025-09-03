@@ -1,59 +1,146 @@
 {% if request.headers.get("HX-Request") %}
 <section
-  id="signin"
-  class="panel is-active"
-  role="tabpanel"
-  aria-labelledby="tab-signin"
+    id="signin"
+    class="panel is-active"
+    role="tabpanel"
+    aria-labelledby="tab-signin"
 >
-  <h2>Sign In</h2>
-  <form hx-post="/auth/login" hx-target="#signin" hx-swap="outerHTML">
-    <label for="email">Email</label>
-    <input type="email" name="email" id="email" required />
+    <h2 id="signin-title">Sign In</h2>
 
-    <label for="password">Password</label>
-    <input
-      type="password"
-      name="password"
-      id="password"
-      required
-      minlength="6"
-    />
+    <div
+        id="auth-status"
+        class="visually-hidden"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
 
-    <label>
-      <input type="checkbox" name="remember" />
-      Remember me
-    </label>
+    <form
+        class="form"
+        hx-post="/auth/login"
+        hx-target="#auth-status"
+        hx-swap="innerHTML"
+        hx-disabled-elt="#signin-btn"
+        hx-indicator="#signin-indicator"
+        novalidate
+    >
+        <div class="field">
+            <label for="email">Email</label>
+            <input
+                type="email"
+                name="email"
+                id="email"
+                required
+                inputmode="email"
+                autocomplete="email"
+                spellcheck="false"
+            />
+        </div>
 
-    <button type="submit" class="btn">Sign In</button>
-  </form>
+        <div class="field">
+            <label for="password">Password</label>
+            <p id="signin-password-hint" class="hint">At least 6 characters.</p>
+            <input
+                type="password"
+                name="password"
+                id="password"
+                required
+                minlength="6"
+                autocomplete="current-password"
+                aria-describedby="signin-password-hint"
+            />
+        </div>
+
+        <div class="field checkbox">
+            <input
+                type="checkbox"
+                name="remember"
+                id="remember"
+                autocomplete="on"
+            />
+            <label for="remember">Remember me</label>
+        </div>
+
+        <button id="signin-btn" type="submit" class="btn">
+            <span
+                id="signin-indicator"
+                class="htmx-indicator"
+                aria-hidden="true"
+                >…</span
+            >
+            Sign In
+        </button>
+    </form>
 </section>
 {% else %} {% extends "base.html" %} {% block content %}
 <section
-  id="signin"
-  class="panel is-active"
-  role="tabpanel"
-  aria-labelledby="tab-signin"
+    id="signin"
+    class="panel is-active"
+    role="tabpanel"
+    aria-labelledby="tab-signin"
 >
-  <h2>Sign In</h2>
-  <form hx-post="/auth/login" hx-target="#signin" hx-swap="outerHTML">
-    <label for="email">Email</label>
-    <input type="email" name="email" id="email" required />
+    <h2 id="signin-title">Sign In</h2>
 
-    <label for="password">Password</label>
-    <input
-      type="password"
-      name="password"
-      id="password"
-      required
-      minlength="6"
-    />
+    <div
+        id="auth-status"
+        class="visually-hidden"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
 
-    <label>
-      <input type="checkbox" name="remember" />
-      Remember me
-    </label>
+    <form
+        hx-post="/auth/login"
+        hx-target="#auth-status"
+        hx-swap="innerHTML"
+        hx-disabled-elt="#signin-btn"
+        hx-indicator="#signin-indicator"
+        novalidate
+    >
+        <div class="field">
+            <label for="email">Email</label>
+            <input
+                type="email"
+                name="email"
+                id="email"
+                required
+                inputmode="email"
+                autocomplete="email"
+                spellcheck="false"
+            />
+        </div>
 
-    <button type="submit" class="btn">Sign In</button>
-  </form>
+        <div class="field">
+            <label for="password">Password</label>
+            <p id="signin-password-hint" class="hint">At least 6 characters.</p>
+            <input
+                type="password"
+                name="password"
+                id="password"
+                required
+                minlength="6"
+                autocomplete="current-password"
+                aria-describedby="signin-password-hint"
+            />
+        </div>
+
+        <div class="field checkbox">
+            <input
+                type="checkbox"
+                name="remember"
+                id="remember"
+                autocomplete="on"
+            />
+            <label for="remember">Remember me</label>
+        </div>
+
+        <button id="signin-btn" type="submit" class="btn">
+            <span
+                id="signin-indicator"
+                class="htmx-indicator"
+                aria-hidden="true"
+                >…</span
+            >
+            Sign In
+        </button>
+    </form>
 </section>
 {% endblock %} {% endif %}

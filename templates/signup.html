@@ -1,67 +1,150 @@
 {% if request.headers.get("HX-Request") %}
 <section
-  id="signup"
-  class="panel is-active"
-  role="tabpanel"
-  aria-labelledby="tab-signup"
+    id="signup"
+    class="panel is-active"
+    role="tabpanel"
+    aria-labelledby="tab-signup"
 >
-  <h2>Register</h2>
-  <form hx-post="/auth/register" hx-target="#signup" hx-swap="outerHTML">
-    <label for="email">Email</label>
-    <input type="email" name="email" id="email" required />
+    <h2 id="signup-title">Register</h2>
 
-    <label for="password">Password</label>
-    <input
-      type="password"
-      name="password"
-      id="password"
-      required
-      minlength="6"
-    />
+    <div
+        id="auth-status"
+        class="visually-hidden"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
 
-    <label for="confirm">Confirm Password</label>
-    <input
-      type="password"
-      name="confirm_password"
-      id="confirm"
-      required
-      minlength="6"
-    />
+    <form
+        class="form"
+        hx-post="/auth/register"
+        hx-target="#auth-status"
+        hx-swap="innerHTML"
+        hx-disabled-elt="#signup-btn"
+        hx-indicator="#signup-indicator"
+        novalidate
+    >
+        <div class="field">
+            <label for="email">Email</label>
+            <input
+                type="email"
+                name="email"
+                id="email"
+                required
+                inputmode="email"
+                autocomplete="email"
+                spellcheck="false"
+            />
+        </div>
 
-    <button type="submit" class="btn">Register</button>
-  </form>
+        <div class="field">
+            <label for="password">Password</label>
+            <p id="signup-password-hint" class="hint">At least 6 characters.</p>
+            <input
+                type="password"
+                name="password"
+                id="password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+                aria-describedby="signup-password-hint"
+            />
+        </div>
+
+        <div class="field">
+            <label for="confirm">Confirm Password</label>
+            <input
+                type="password"
+                name="confirm_password"
+                id="confirm"
+                required
+                minlength="6"
+                autocomplete="new-password"
+            />
+        </div>
+
+        <button id="signup-btn" type="submit" class="btn">
+            <span
+                id="signup-indicator"
+                class="htmx-indicator"
+                aria-hidden="true"
+                >…</span
+            >
+            Register
+        </button>
+    </form>
 </section>
 {% else %} {% extends "base.html" %} {% block content %}
 <section
-  id="signup"
-  class="panel is-active"
-  role="tabpanel"
-  aria-labelledby="tab-signup"
+    id="signup"
+    class="panel is-active"
+    role="tabpanel"
+    aria-labelledby="tab-signup"
 >
-  <h2>Register</h2>
-  <form hx-post="/auth/register" hx-target="#signup" hx-swap="outerHTML">
-    <label for="email">Email</label>
-    <input type="email" name="email" id="email" required />
+    <h2 id="signup-title">Register</h2>
 
-    <label for="password">Password</label>
-    <input
-      type="password"
-      name="password"
-      id="password"
-      required
-      minlength="6"
-    />
+    <div
+        id="auth-status"
+        class="visually-hidden"
+        aria-live="polite"
+        aria-atomic="true"
+    ></div>
 
-    <label for="confirm">Confirm Password</label>
-    <input
-      type="password"
-      name="confirm_password"
-      id="confirm"
-      required
-      minlength="6"
-    />
+    <form
+        hx-post="/auth/register"
+        hx-target="#auth-status"
+        hx-swap="innerHTML"
+        hx-disabled-elt="#signup-btn"
+        hx-indicator="#signup-indicator"
+        novalidate
+    >
+        <div class="field">
+            <label for="email">Email</label>
+            <input
+                type="email"
+                name="email"
+                id="email"
+                required
+                inputmode="email"
+                autocomplete="email"
+                spellcheck="false"
+            />
+        </div>
 
-    <button type="submit" class="btn">Register</button>
-  </form>
+        <div class="field">
+            <label for="password">Password</label>
+            <p id="signup-password-hint" class="hint">At least 6 characters.</p>
+            <input
+                type="password"
+                name="password"
+                id="password"
+                required
+                minlength="6"
+                autocomplete="new-password"
+                aria-describedby="signup-password-hint"
+            />
+        </div>
+
+        <div class="field">
+            <label for="confirm">Confirm Password</label>
+            <input
+                type="password"
+                name="confirm_password"
+                id="confirm"
+                required
+                minlength="6"
+                autocomplete="new-password"
+            />
+        </div>
+
+        <button id="signup-btn" type="submit" class="btn">
+            <span
+                id="signup-indicator"
+                class="htmx-indicator"
+                aria-hidden="true"
+                >…</span
+            >
+            Register
+        </button>
+    </form>
 </section>
 {% endblock %} {% endif %}

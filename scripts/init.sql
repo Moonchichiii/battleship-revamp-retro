@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     github_id INTEGER UNIQUE,
     display_name VARCHAR(100),
     avatar_url TEXT,
+    -- NEW: local-auth password hash (nullable so OAuth-only users are fine)
+    password_hash TEXT,
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
     last_login TIMESTAMP WITH TIME ZONE,

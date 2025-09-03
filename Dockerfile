@@ -1,40 +1,55 @@
-# Build Stage
-ARG BASE_IMAGE=python:3.13.5-alpine
+# ---------- Build stage ----------
+ARG BASE_IMAGE=python:3.12-alpine
 FROM ${BASE_IMAGE} AS builder
 
-# Install dependencies
-RUN apk add --no-cache build-base gcc
+# Faster, quieter pip/poetry; no local venvs; stable export
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_VERSION=1.8.3
+
+# Build deps only for compiling wheels (bcrypt/argon2/asyncpg, etc.)
+RUN apk add --no-cache build-base gcc musl-dev libffi-dev openssl-dev
 
 WORKDIR /app
 
-# Install Python packages
-COPY requirements.txt .
-RUN pip install --upgrade pip && pip install --no-cache-dir --prefix=/install -r requirements.txt
+# Install Poetry (export is built-in on 1.8.x; no plugin needed)
+RUN pip install "poetry==${POETRY_VERSION}" && poetry config warnings.export false
 
-# Runtime Stage
-ARG BASE_IMAGE=python:3.13.5-alpine
+# Cache deps: copy only metadata first
+COPY pyproject.toml poetry.lock* ./
+
+# Export locked runtime deps and install them to /install (no dev deps)
+RUN mkdir -p /install && set -eux; \
+    poetry export -f requirements.txt --without-hashes --without dev -o /tmp/requirements.txt; \
+    pip install --prefix=/install --no-cache-dir -r /tmp/requirements.txt
+
+
+# ---------- Runtime stage ----------
 FROM ${BASE_IMAGE} AS runtime
 
+# Useful envs for containers
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Runtime libs only (no compilers); curl for healthcheck
+# libffi/openssl cover common crypto/hash wheels; tzdata for logs/timestamps; libstdc++ for some wheels
+RUN apk add --no-cache curl libffi openssl tzdata libstdc++
+
 WORKDIR /app
 
-# Install curl
-RUN apk add --no-cache curl
-
-# Set Python path
-ENV PYTHONPATH=/usr/local/lib/python3.13/site-packages
-
-# Copy dependencies and app code
+# Bring in installed site-packages and console scripts
 COPY --from=builder /install /usr/local
+
+# App code
 COPY . .
 
-# Create user and switch
-RUN adduser -D appuser
+# Non-root user
+RUN adduser -D appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port and healthcheck
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -fsS http://localhost:8000/health || exit 1
 
-# Run app
+# Light concurrency without reload in prod
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

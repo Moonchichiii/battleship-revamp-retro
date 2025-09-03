@@ -1,5 +1,23 @@
 {% if ok %}
-<div class="notice success" role="alert">{{ message }}</div>
+<div
+    id="auth-message"
+    class="notice success"
+    role="status"
+    aria-live="polite"
+    tabindex="-1"
+    hx-on::after-settle="this.focus()"
+>
+    {{ message }}
+</div>
 {% else %}
-<div class="notice error" role="alert">{{ message }}</div>
+<div
+    id="auth-message"
+    class="notice error"
+    role="alert"
+    aria-live="assertive"
+    tabindex="-1"
+    hx-on::after-settle="this.focus()"
+>
+    {{ message }}
+</div>
 {% endif %}

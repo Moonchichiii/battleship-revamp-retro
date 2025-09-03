@@ -11,16 +11,13 @@ services:
     container_name: battleship-app
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "${PORT:-8000}:8000"
-    volumes:
-      - .:/app
-      - /app/venv
     env_file:
       - .env
     environment:
-      - ENVIRONMENT=development
+      - ENVIRONMENT=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}@db:5432/${POSTGRES_DB:-battleship_revamp}
     secrets:
       - app_secret_key

@@ -1,151 +1,372 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="{{ url_for('static', path='assets/favicon.svg') }}"
-    />
-    <link
-      rel="mask-icon"
-      href="{{ url_for('static', path='assets/favicon.svg') }}"
-      color="#00ff66"
-    />
-    <title>{% block title %}Battleship Revamp{% endblock %}</title>
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
 
-    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', path='css/retro.css') }}"
-    />
-    {% block extra_css %}{% endblock %}
-  </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to main content</a>
+        <!-- Meta Tags -->
+        <meta
+            name="description"
+            content="{% block description %}Play the classic Battleship game online. Modern web implementation with FastAPI and HTMX. Challenge yourself and compete for top scores!{% endblock %}"
+        />
+        <meta
+            name="keywords"
+            content="battleship game, online battleship, web game, strategy game, FastAPI, HTMX"
+        />
+        <meta name="author" content="Battleship Revamp" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="{{ request.url }}" />
 
-    <header class="site-header" role="banner">
-      <div class="container">
-        <h1 class="brand">Battleship Revamp</h1>
-        <p class="tagline">
-          A modern take on Battleship using FastAPI and HTMX.
-        </p>
-      </div>
-    </header>
+        <!-- Open Graph -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="{{ request.url }}" />
+        <meta
+            property="og:title"
+            content="{% block og_title %}{{ self.title() }}{% endblock %}"
+        />
+        <meta
+            property="og:description"
+            content="{% block og_description %}{{ self.description() }}{% endblock %}"
+        />
+        <meta
+            property="og:image"
+            content="{{ url_for('static', path='assets/og-image.png') }}"
+        />
+        <meta property="og:site_name" content="Battleship Revamp" />
 
-    <nav class="nav" aria-label="Primary" role="navigation">
-      <div class="container">
-        <div
-          class="tabs"
-          id="primary-tabs"
-          role="tablist"
-          aria-orientation="horizontal"
-        >
-          <button
-            id="tab-home"
-            type="button"
-            class="tab {% if active_tab=='home' %}is-active{% endif %}"
-            hx-get="{{ url_for('home') }}"
-            hx-target="#main"
-            hx-swap="innerHTML"
-            hx-push-url="true"
-          >
-            Home
-          </button>
+        <!-- Favicon -->
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="{{ url_for('static', path='assets/favicon.svg') }}"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="{{ url_for('static', path='assets/favicon-32x32.png') }}"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="{{ url_for('static', path='assets/favicon-16x16.png') }}"
+        />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="{{ url_for('static', path='assets/apple-touch-icon.png') }}"
+        />
+        <link
+            rel="mask-icon"
+            href="{{ url_for('static', path='assets/favicon.svg') }}"
+            color="#00ff66"
+        />
+        <meta name="theme-color" content="#00ff66" />
+        <meta name="msapplication-TileColor" content="#00ff66" />
 
-          <button
-            id="tab-game"
-            type="button"
-            class="tab {% if active_tab=='game' %}is-active{% endif %}"
-            hx-get="{{ url_for('game') }}"
-            hx-target="#main"
-            hx-swap="innerHTML"
-            hx-push-url="true"
-          >
-            Play Game
-          </button>
+        <!-- Structured Data -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
+                "name": "Battleship Revamp",
+                "description": "Modern online Battleship game built with FastAPI and HTMX",
+                "url": "{{ request.base_url }}",
+                "applicationCategory": "Game",
+                "operatingSystem": "Web Browser",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "author": {
+                    "@type": "Organization",
+                    "name": "Battleship Revamp"
+                }
+            }
+        </script>
 
-          <button
-            id="tab-scores"
-            type="button"
-            class="tab {% if active_tab=='scores' %}is-active{% endif %}"
-            hx-get="{{ url_for('scores') }}"
-            hx-target="#main"
-            hx-swap="innerHTML"
-            hx-push-url="true"
-          >
-            Top Scores
-          </button>
+        <title>
+            {% block title %}Battleship Revamp - Play Online Battleship Game{%
+            endblock %}
+        </title>
 
-          <button
-            id="tab-signin"
-            type="button"
-            class="tab {% if active_tab=='signin' %}is-active{% endif %}"
-            hx-get="{{ url_for('signin') }}"
-            hx-target="#main"
-            hx-swap="innerHTML"
-            hx-push-url="true"
-          >
-            Sign In
-          </button>
+        <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
 
-          <button
-            id="tab-signup"
-            type="button"
-            class="tab {% if active_tab=='signup' %}is-active{% endif %}"
-            hx-get="{{ url_for('signup') }}"
-            hx-target="#main"
-            hx-swap="innerHTML"
-            hx-push-url="true"
-          >
-            Register
-          </button>
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', path='css/retro.css') }}"
+        />
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body>
+        <!-- Enhanced Skip Links -->
+        <div class="skip-links">
+            <a class="skip-link" href="#main">Skip to main content</a>
+            <a class="skip-link" href="#primary-nav">Skip to navigation</a>
         </div>
-      </div>
-    </nav>
 
-    <main id="main" class="container" role="main">
-      {% block content %}{% endblock %}
-    </main>
+        <header class="site-header" role="banner">
+            <div class="container">
+                <h1 class="brand">Battleship Revamp</h1>
+                <p class="tagline">
+                    A modern take on Battleship using FastAPI and HTMX.
+                </p>
+            </div>
+        </header>
 
-    <footer class="site-footer" role="contentinfo">
-      <div class="container">
-        <p>
-          &copy; 2025 Battleship Revamp —
-          <a
-            href="https://fastapi.tiangolo.com/"
-            target="_blank"
-            rel="noreferrer"
-            >FastAPI</a
-          >
-          &amp;
-          <a href="https://htmx.org/" target="_blank" rel="noreferrer">HTMX</a>.
-        </p>
-      </div>
-    </footer>
+        <nav
+            id="primary-nav"
+            class="nav"
+            aria-label="Primary navigation"
+            role="navigation"
+        >
+            <div class="container">
+                <div
+                    class="tabs"
+                    id="primary-tabs"
+                    role="tablist"
+                    aria-orientation="horizontal"
+                    aria-label="Main navigation tabs"
+                >
+                    <button
+                        id="tab-home"
+                        type="button"
+                        class="tab {% if active_tab=='home' %}is-active{% endif %}"
+                        role="tab"
+                        aria-selected="{% if active_tab=='home' %}true{% else %}false{% endif %}"
+                        aria-controls="main"
+                        tabindex="{% if active_tab=='home' %}0{% else %}-1{% endif %}"
+                        hx-get="{{ url_for('home') }}"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        Home {% if active_tab=='home' %}<span
+                            class="visually-hidden"
+                        >
+                            (current)</span
+                        >{% endif %}
+                    </button>
 
-    <script>
-      // After HTMX swaps, keep the active tab in sync with the URL
-      document.addEventListener("htmx:afterSwap", function () {
-        const path = location.pathname;
-        const map = {
-          "/": "tab-home",
-          "/game": "tab-game",
-          "/scores": "tab-scores",
-          "/signin": "tab-signin",
-          "/signup": "tab-signup",
-        };
-        const activeId = map[path] || "tab-home";
-        document
-          .querySelectorAll(".tabs .tab")
-          .forEach((b) => b.classList.remove("is-active"));
-        const el = document.getElementById(activeId);
-        if (el) el.classList.add("is-active");
-      });
-    </script>
-  </body>
+                    <button
+                        id="tab-game"
+                        type="button"
+                        class="tab {% if active_tab=='game' %}is-active{% endif %}"
+                        role="tab"
+                        aria-selected="{% if active_tab=='game' %}true{% else %}false{% endif %}"
+                        aria-controls="main"
+                        tabindex="{% if active_tab=='game' %}0{% else %}-1{% endif %}"
+                        hx-get="{{ url_for('game') }}"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        Play Game {% if active_tab=='game' %}<span
+                            class="visually-hidden"
+                        >
+                            (current)</span
+                        >{% endif %}
+                    </button>
+
+                    <button
+                        id="tab-scores"
+                        type="button"
+                        class="tab {% if active_tab=='scores' %}is-active{% endif %}"
+                        role="tab"
+                        aria-selected="{% if active_tab=='scores' %}true{% else %}false{% endif %}"
+                        aria-controls="main"
+                        tabindex="{% if active_tab=='scores' %}0{% else %}-1{% endif %}"
+                        hx-get="{{ url_for('scores') }}"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        Top Scores {% if active_tab=='scores' %}<span
+                            class="visually-hidden"
+                        >
+                            (current)</span
+                        >{% endif %}
+                    </button>
+
+                    <button
+                        id="tab-signin"
+                        type="button"
+                        class="tab {% if active_tab=='signin' %}is-active{% endif %}"
+                        role="tab"
+                        aria-selected="{% if active_tab=='signin' %}true{% else %}false{% endif %}"
+                        aria-controls="main"
+                        tabindex="{% if active_tab=='signin' %}0{% else %}-1{% endif %}"
+                        hx-get="{{ url_for('signin') }}"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        Sign In {% if active_tab=='signin' %}<span
+                            class="visually-hidden"
+                        >
+                            (current)</span
+                        >{% endif %}
+                    </button>
+
+                    <button
+                        id="tab-signup"
+                        type="button"
+                        class="tab {% if active_tab=='signup' %}is-active{% endif %}"
+                        role="tab"
+                        aria-selected="{% if active_tab=='signup' %}true{% else %}false{% endif %}"
+                        aria-controls="main"
+                        tabindex="{% if active_tab=='signup' %}0{% else %}-1{% endif %}"
+                        hx-get="{{ url_for('signup') }}"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        Register {% if active_tab=='signup' %}<span
+                            class="visually-hidden"
+                        >
+                            (current)</span
+                        >{% endif %}
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main id="main" class="container" role="main" aria-live="polite">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="site-footer" role="contentinfo">
+            <div class="container">
+                <p>
+                    &copy; 2025 Battleship Revamp —
+                    <a
+                        href="https://fastapi.tiangolo.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="FastAPI framework (opens in new window)"
+                        >FastAPI</a
+                    >
+                    &amp;
+                    <a
+                        href="https://htmx.org/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="HTMX library (opens in new window)"
+                        >HTMX</a
+                    >.
+                </p>
+            </div>
+        </footer>
+
+        <script>
+            // Enhanced HTMX navigation with accessibility
+            (function () {
+                // After HTMX swaps, manage tab states and accessibility
+                document.addEventListener("htmx:afterSwap", function () {
+                    const path = location.pathname;
+                    const map = {
+                        "/": "tab-home",
+                        "/game": "tab-game",
+                        "/scores": "tab-scores",
+                        "/signin": "tab-signin",
+                        "/signup": "tab-signup",
+                    };
+
+                    const activeId = map[path] || "tab-home";
+
+                    // Update tab states and ARIA attributes
+                    document.querySelectorAll(".tabs .tab").forEach((tab) => {
+                        const isActive = tab.id === activeId;
+                        tab.classList.toggle("is-active", isActive);
+                        tab.setAttribute("aria-selected", isActive);
+                        tab.setAttribute("tabindex", isActive ? "0" : "-1");
+
+                        // Update current page indicator
+                        const currentSpan =
+                            tab.querySelector(".visually-hidden");
+                        if (currentSpan) {
+                            currentSpan.textContent = isActive
+                                ? " (current)"
+                                : "";
+                        }
+                    });
+
+                    // Announce page change to screen readers
+                    const pageTitle =
+                        document.querySelector("h1, h2")?.textContent || "Page";
+                    const announcement = document.createElement("div");
+                    announcement.setAttribute("aria-live", "assertive");
+                    announcement.className = "visually-hidden";
+                    announcement.textContent = `Navigated to ${pageTitle}`;
+                    document.body.appendChild(announcement);
+
+                    setTimeout(() => {
+                        if (document.body.contains(announcement)) {
+                            document.body.removeChild(announcement);
+                        }
+                    }, 1000);
+                });
+
+                // Keyboard navigation for tabs
+                document.addEventListener("keydown", function (evt) {
+                    if (evt.target.matches(".tab")) {
+                        const tabs = Array.from(
+                            document.querySelectorAll(".tab")
+                        );
+                        const currentIndex = tabs.indexOf(evt.target);
+                        let nextTab = null;
+
+                        switch (evt.key) {
+                            case "ArrowRight":
+                            case "ArrowDown":
+                                evt.preventDefault();
+                                nextTab = tabs[currentIndex + 1] || tabs[0];
+                                break;
+                            case "ArrowLeft":
+                            case "ArrowUp":
+                                evt.preventDefault();
+                                nextTab =
+                                    tabs[currentIndex - 1] ||
+                                    tabs[tabs.length - 1];
+                                break;
+                            case "Home":
+                                evt.preventDefault();
+                                nextTab = tabs[0];
+                                break;
+                            case "End":
+                                evt.preventDefault();
+                                nextTab = tabs[tabs.length - 1];
+                                break;
+                        }
+
+                        if (nextTab) {
+                            nextTab.focus();
+                        }
+                    }
+                });
+
+                // Error handling
+                document.addEventListener("htmx:responseError", function (evt) {
+                    const errorMsg = document.createElement("div");
+                    errorMsg.setAttribute("role", "alert");
+                    errorMsg.className = "visually-hidden";
+                    errorMsg.textContent =
+                        "Navigation error. Please try again.";
+                    document.body.appendChild(errorMsg);
+
+                    setTimeout(() => {
+                        if (document.body.contains(errorMsg)) {
+                            document.body.removeChild(errorMsg);
+                        }
+                    }, 3000);
+                });
+            })();
+        </script>
+        {% block extra_js %}{% endblock %}
+    </body>
 </html>
