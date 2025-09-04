@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/ci.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/ci.yml) [![Security](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/security.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/security.yml) [![Deploy to Render](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/deploy.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/deploy.yml)
 
+[![CI](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/CI/badge.svg?branch=main)]
 ## Development Roadmap
 
 The complete project roadmap and development tracking can be found on the [Battleship Revamp 2025 GitHub Project Board](https://github.com/users/Moonchichiii/projects/43).
