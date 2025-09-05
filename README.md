@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Moonchichiii/battleship-revamp-retro/workflows/CI/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/ci.yml)
 
-[![CI](https://github.com/Moonchichiii/battleship-revamp-2025/workflows/CI/badge.svg?branch=main)]
+
 
 ## Development Roadmap
 
