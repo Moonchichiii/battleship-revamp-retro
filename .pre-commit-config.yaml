@@ -1,19 +1,19 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 24.3.0
+    rev: 25.1.0
     hooks:
       - id: black
         args: ["--check", "--diff"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.0
+    rev: v0.12.11
     hooks:
       - id: ruff
         args: ["--fix"]
         additional_dependencies: []
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.2
+    rev: v1.17.1
     hooks:
     - id: mypy
       args: ["--strict", "--install-types", "--non-interactive"]
@@ -29,7 +29,7 @@ repos:
 
   # (Optional) YAML + TOML linting, catching CI/CD issues.
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: detect-private-key
