@@ -26,12 +26,21 @@ _STATE: _State = {"game": None, "size": 8}
 
 
 # Helpers
-def get_current_game(size: int = 8) -> Game:
-    """Retrieve the current game instance or create a new one."""
+def get_current_game(size: int | None = None) -> Game:
+    """Return the current Game instance."""
     game: Game | None = _STATE["game"]
     cur_size: int = _STATE["size"]
 
-    if game is None or cur_size != size:
+    # If no game exists, create with provided size if given; else use current size
+    if game is None:
+        new_size = size if size is not None else cur_size
+        game = Game.new(new_size)
+        _STATE["game"] = game
+        _STATE["size"] = new_size
+        return game
+
+    # If a size is provided and differs, create a new game with that size
+    if size is not None and cur_size != size:
         game = Game.new(size)
         _STATE["game"] = game
         _STATE["size"] = size
@@ -58,11 +67,9 @@ async def new_game(
     game = reset_current_game(size)
 
     return templates.TemplateResponse(
+        request,
         "_board.html",
-        {
-            "request": request,
-            "board": game,
-        },
+        {"board": game},
     )
 
 
@@ -76,11 +83,9 @@ async def reset_game(
     game = reset_current_game(size)
 
     return templates.TemplateResponse(
+        request,
         "_board.html",
-        {
-            "request": request,
-            "board": game,
-        },
+        {"board": game},
     )
 
 
@@ -99,18 +104,16 @@ async def shot(
         game.fire(x, y)
 
     return templates.TemplateResponse(
+        request,
         "_board.html",
-        {
-            "request": request,
-            "board": game,
-        },
+        {"board": game},
     )
 
 
 @router.get("/game-status", response_class=HTMLResponse)
 async def game_status(request: Request) -> HTMLResponse:
     """Retrieve the current game status."""
-    game = get_current_game()
+    game = get_current_game(_STATE["size"])
 
     total_cells = game.size * game.size
     shots_fired = sum(
@@ -128,9 +131,7 @@ async def game_status(request: Request) -> HTMLResponse:
     }
 
     return templates.TemplateResponse(
+        request,
         "_game_status.html",
-        {
-            "request": request,
-            "status": status,
-        },
+        {"status": status},
     )

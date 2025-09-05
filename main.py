@@ -48,7 +48,7 @@ async def home(request: Request) -> HTMLResponse:
     """Render the home page."""
     ctx = {"request": request, "active_tab": "home"}
     tpl = "home.html"
-    return templates.TemplateResponse(tpl, ctx)
+    return templates.TemplateResponse(request, tpl, ctx)
 
 
 @app.get("/game", response_class=HTMLResponse, name="game")
@@ -56,7 +56,7 @@ async def game_page(request: Request) -> HTMLResponse:
     """Render the game page."""
     ctx = {"request": request, "active_tab": "game"}
     tpl = "game.html"
-    return templates.TemplateResponse(tpl, ctx)
+    return templates.TemplateResponse(request, tpl, ctx)
 
 
 @app.get("/scores", response_class=HTMLResponse, name="scores")
@@ -64,21 +64,21 @@ async def scores_page(request: Request) -> HTMLResponse:
     """Render the scores page."""
     ctx = {"request": request, "active_tab": "scores"}
     tpl = "scores.html"
-    return templates.TemplateResponse(tpl, ctx)
+    return templates.TemplateResponse(request, tpl, ctx)
 
 
 @app.get("/signin", response_class=HTMLResponse, name="signin")
 async def signin_page(request: Request) -> HTMLResponse:
     """Render the sign-in page."""
     ctx = {"request": request, "active_tab": "signin"}
-    return templates.TemplateResponse("signin.html", ctx)
+    return templates.TemplateResponse(request, "signin.html", ctx)
 
 
 @app.get("/signup", response_class=HTMLResponse, name="signup")
 async def signup_page(request: Request) -> HTMLResponse:
     """Render the sign-up page."""
     ctx = {"request": request, "active_tab": "signup"}
-    return templates.TemplateResponse("signup.html", ctx)
+    return templates.TemplateResponse(request, "signup.html", ctx)
 
 
 # Register routers

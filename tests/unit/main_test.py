@@ -13,7 +13,7 @@ from main import app, is_hx
 
 
 # pylint: disable=redefined-outer-name
-@pytest.fixture()
+@pytest.fixture()  # noqa: PT001
 def client_fx() -> TestClient:
     """Fixture to provide a test client."""
     return TestClient(app)

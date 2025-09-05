@@ -36,6 +36,10 @@ class Game:
     hits: set[Coord] = field(default_factory=set)
     misses: set[Coord] = field(default_factory=set)
 
+    def is_valid_placement(self: Game, coords: set[Coord]) -> bool:
+        """Public wrapper for validating ship placement (used by tests & tools)."""
+        return self._is_valid_placement(coords)
+
     def __post_init__(self: Game) -> None:
         """Validate and clamp board size after initialization."""
         self.size = max(6, min(10, self.size))
