@@ -12,7 +12,7 @@ from main import app
 # pylint: disable=redefined-outer-name
 
 
-@pytest.fixture
+@pytest.fixture()  # noqa: PT001
 def client() -> TestClient:
     """Create test client for integration tests."""
     return TestClient(app)
