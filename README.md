@@ -2,8 +2,6 @@
 
 [![CI](https://github.com/Moonchichiii/battleship-revamp-retro/workflows/CI/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/ci.yml)
 
-
-
 ## Development Roadmap
 
 The complete project roadmap and development tracking can be found on the [Battleship Revamp 2025 GitHub Project Board](https://github.com/users/Moonchichiii/projects/43).
