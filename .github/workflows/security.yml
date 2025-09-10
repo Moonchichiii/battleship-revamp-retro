@@ -11,7 +11,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 3 * * *" # nightly scan
+    - cron: "0 3 * * *"
 
 permissions:
   contents: read
@@ -25,7 +25,7 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.pick.outputs.tag }} # single canonical tag for scanners
+      tag: ${{ steps.pick.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
 

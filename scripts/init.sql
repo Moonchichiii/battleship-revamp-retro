@@ -124,6 +124,7 @@ CREATE INDEX IF NOT EXISTS idx_user_achievements_earned_at ON user_achievements(
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_ip      ON user_sessions(ip_address);
 
 -- AUTO-UPDATE TRIGGERS: Updates 'updated_at' timestamps
 

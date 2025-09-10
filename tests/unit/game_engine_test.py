@@ -1,4 +1,4 @@
-"""Tests for game engine."""
+﻿"""Tests for game engine."""
 
 from __future__ import annotations
 
@@ -248,7 +248,7 @@ class TestGame:  # pylint: disable=too-many-public-methods
             assert mock_logger.warning.called
 
     def test_is_valid_placement_no_overlap(self: TestGame) -> None:
-        """Test valid placement check — no overlapping ships."""
+        """Test valid placement check â€” no overlapping ships."""
         game = Game(size=MID_BOARD_SIZE)
         game.ships = {(0, 0), (1, 0)}
 
@@ -257,7 +257,7 @@ class TestGame:  # pylint: disable=too-many-public-methods
         assert not game.is_valid_placement(new_coords)
 
     def test_is_valid_placement_no_adjacency(self: TestGame) -> None:
-        """Test valid placement check — no side adjacency."""
+        """Test valid placement check â€” no side adjacency."""
         game = Game(size=MID_BOARD_SIZE)
         game.ships = {(2, 2)}
 
@@ -266,7 +266,7 @@ class TestGame:  # pylint: disable=too-many-public-methods
         assert not game.is_valid_placement(adjacent_coords)
 
     def test_is_valid_placement_diagonal_adjacency(self: TestGame) -> None:
-        """Test valid placement check — no diagonal adjacency."""
+        """Test valid placement check â€” no diagonal adjacency."""
         game = Game(size=MID_BOARD_SIZE)
         game.ships = {(2, 2)}
 
@@ -275,7 +275,7 @@ class TestGame:  # pylint: disable=too-many-public-methods
         assert not game.is_valid_placement(diagonal_coords)
 
     def test_is_valid_placement_valid(self: TestGame) -> None:
-        """Test valid placement check — valid placement."""
+        """Test valid placement check â€” valid placement."""
         game = Game(size=MID_BOARD_SIZE)
         game.ships = {(0, 0)}
 

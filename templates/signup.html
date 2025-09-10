@@ -1,11 +1,47 @@
-{% if request.headers.get("HX-Request") %}
+{% set HX = request.headers.get("HX-Request") %} {% if HX %}
 <section
     id="signup"
     class="panel is-active"
     role="tabpanel"
     aria-labelledby="tab-signup"
 >
-    <h2 id="signup-title">Register</h2>
+    <h2 id="signup-title">Create Account</h2>
+
+    <!-- GitHub OAuth Sign Up -->
+    {% set github_enabled = GITHUB_CLIENT_ID %} {% if github_enabled %}
+    <div class="oauth-section" style="margin-bottom: 2rem; text-align: center">
+        <a
+            href="/auth/github/login"
+            class="btn btn-primary oauth-btn"
+            style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                text-decoration: none;
+                background: #24292e !important;
+                border-color: #24292e !important;
+                color: white !important;
+            "
+        >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path
+                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                />
+            </svg>
+            Sign up with GitHub
+        </a>
+
+        <div
+            style="
+                margin: 1.5rem 0;
+                color: var(--g-text-soft);
+                font-size: 0.9rem;
+            "
+        >
+            or create account with email
+        </div>
+    </div>
+    {% endif %}
 
     <div
         id="auth-status"
@@ -22,6 +58,7 @@
         hx-disabled-elt="#signup-btn"
         hx-indicator="#signup-indicator"
         novalidate
+        id="signup-form"
     >
         <div class="field">
             <label for="email">Email</label>
@@ -38,16 +75,31 @@
 
         <div class="field">
             <label for="password">Password</label>
-            <p id="signup-password-hint" class="hint">At least 6 characters.</p>
+            <p id="signup-password-hint" class="hint">
+                At least 8 characters with uppercase, lowercase, and numbers
+            </p>
             <input
                 type="password"
                 name="password"
                 id="password"
                 required
-                minlength="6"
+                minlength="8"
+                maxlength="128"
                 autocomplete="new-password"
                 aria-describedby="signup-password-hint"
             />
+
+            <!-- Password strength indicator -->
+            <div
+                id="password-strength"
+                class="password-strength"
+                style="margin-top: 0.5rem"
+            >
+                <div class="strength-bar">
+                    <div class="strength-fill" id="strength-fill"></div>
+                </div>
+                <div id="strength-text" class="strength-text"></div>
+            </div>
         </div>
 
         <div class="field">
@@ -57,94 +109,166 @@
                 name="confirm_password"
                 id="confirm"
                 required
-                minlength="6"
+                minlength="8"
                 autocomplete="new-password"
             />
         </div>
 
-        <button id="signup-btn" type="submit" class="btn">
+        <button id="signup-btn" type="submit" class="btn btn-primary">
             <span
                 id="signup-indicator"
                 class="htmx-indicator"
                 aria-hidden="true"
-                >…</span
+                >⏳</span
             >
-            Register
+            Create Account
         </button>
+
+        <div style="margin-top: 1rem; text-align: center">
+            <button
+                type="button"
+                class="btn btn-secondary"
+                hx-get="/signin"
+                hx-target="#main"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            >
+                Already have an account? Sign In
+            </button>
+        </div>
     </form>
 </section>
-{% else %} {% extends "base.html" %} {% block content %}
+
+<style>
+    .password-strength {
+        margin-top: 0.5rem;
+    }
+
+    .strength-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(0, 255, 102, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+        background: var(--g-text-soft);
+    }
+
+    .strength-fill.weak {
+        background: #ff6b6b;
+    }
+
+    .strength-fill.medium {
+        background: #ffd93d;
+    }
+
+    .strength-fill.strong {
+        background: var(--g);
+    }
+
+    .strength-text {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        color: var(--g-text-soft);
+    }
+
+    .oauth-btn:hover {
+        background: #1c2127 !important;
+        border-color: #1c2127 !important;
+    }
+</style>
+
+<script>
+    // Client-side password strength validation
+    document.addEventListener("DOMContentLoaded", function () {
+        const passwordInput = document.getElementById("password");
+        const confirmInput = document.getElementById("confirm");
+        const strengthFill = document.getElementById("strength-fill");
+        const strengthText = document.getElementById("strength-text");
+
+        function checkPasswordStrength(password) {
+            let score = 0;
+            let feedback = [];
+
+            if (password.length >= 8) score += 1;
+            else feedback.push("8+ chars");
+
+            if (/[A-Z]/.test(password)) score += 1;
+            else feedback.push("uppercase");
+
+            if (/[a-z]/.test(password)) score += 1;
+            else feedback.push("lowercase");
+
+            if (/[0-9]/.test(password)) score += 1;
+            else feedback.push("number");
+
+            if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+            return { score, feedback };
+        }
+
+        if (passwordInput && strengthFill && strengthText) {
+            passwordInput.addEventListener("input", function () {
+                const password = this.value;
+                const { score, feedback } = checkPasswordStrength(password);
+
+                // Update strength bar
+                const percentage = (score / 4) * 100;
+                strengthFill.style.width = `${percentage}%`;
+
+                // Update colors and text
+                if (score === 0) {
+                    strengthFill.className = "strength-fill";
+                    strengthText.textContent = "";
+                } else if (score < 2) {
+                    strengthFill.className = "strength-fill weak";
+                    strengthText.textContent = "Weak";
+                } else if (score < 4) {
+                    strengthFill.className = "strength-fill medium";
+                    strengthText.textContent = "Medium";
+                } else {
+                    strengthFill.className = "strength-fill strong";
+                    strengthText.textContent = "Strong";
+                }
+
+                if (feedback.length > 0 && password.length > 0) {
+                    strengthText.textContent += ` (Need: ${feedback.join(
+                        ", "
+                    )})`;
+                }
+            });
+        }
+
+        // Confirm password validation
+        if (confirmInput) {
+            confirmInput.addEventListener("input", function () {
+                const password = passwordInput.value;
+                const confirm = this.value;
+
+                if (confirm && password !== confirm) {
+                    this.setCustomValidity("Passwords do not match");
+                } else {
+                    this.setCustomValidity("");
+                }
+            });
+        }
+    });
+</script>
+
+{% else %} {% extends "base.html" %} {% set active_tab = 'signup' %} {% block
+content %}
+<!-- Same content as above but as full page -->
 <section
     id="signup"
     class="panel is-active"
     role="tabpanel"
     aria-labelledby="tab-signup"
 >
-    <h2 id="signup-title">Register</h2>
-
-    <div
-        id="auth-status"
-        class="visually-hidden"
-        aria-live="polite"
-        aria-atomic="true"
-    ></div>
-
-    <form
-        hx-post="/auth/register"
-        hx-target="#auth-status"
-        hx-swap="innerHTML"
-        hx-disabled-elt="#signup-btn"
-        hx-indicator="#signup-indicator"
-        novalidate
-    >
-        <div class="field">
-            <label for="email">Email</label>
-            <input
-                type="email"
-                name="email"
-                id="email"
-                required
-                inputmode="email"
-                autocomplete="email"
-                spellcheck="false"
-            />
-        </div>
-
-        <div class="field">
-            <label for="password">Password</label>
-            <p id="signup-password-hint" class="hint">At least 6 characters.</p>
-            <input
-                type="password"
-                name="password"
-                id="password"
-                required
-                minlength="6"
-                autocomplete="new-password"
-                aria-describedby="signup-password-hint"
-            />
-        </div>
-
-        <div class="field">
-            <label for="confirm">Confirm Password</label>
-            <input
-                type="password"
-                name="confirm_password"
-                id="confirm"
-                required
-                minlength="6"
-                autocomplete="new-password"
-            />
-        </div>
-
-        <button id="signup-btn" type="submit" class="btn">
-            <span
-                id="signup-indicator"
-                class="htmx-indicator"
-                aria-hidden="true"
-                >…</span
-            >
-            Register
-        </button>
-    </form>
+    <!-- Content repeated here -->
 </section>
 {% endblock %} {% endif %}

@@ -1,4 +1,4 @@
-"""Unit tests for authentication endpoints (validation & pages)."""
+﻿"""Unit tests for authentication endpoints (validation & pages)."""
 
 from __future__ import annotations
 

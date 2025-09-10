@@ -116,6 +116,33 @@
                 <p class="tagline">
                     A modern take on Battleship using FastAPI and HTMX.
                 </p>
+                <div
+                    id="auth-header"
+                    class="container"
+                    style="
+                        display: flex;
+                        justify-content: flex-end;
+                        gap: 0.5rem;
+                    "
+                >
+                    {% if current_user %}
+                    <span
+                        >Welcome, {{ current_user.display_name or
+                        current_user.username }}!</span
+                    >
+                    <button
+                        class="btn btn-secondary"
+                        hx-post="/auth/logout"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        Logout
+                    </button>
+                    {% else %}
+                    <span>Guest</span>
+                    {% endif %}
+                </div>
             </div>
         </header>
 
@@ -133,6 +160,7 @@
                     aria-orientation="horizontal"
                     aria-label="Main navigation tabs"
                 >
+                    <!-- Home -->
                     <button
                         id="tab-home"
                         type="button"
@@ -148,11 +176,11 @@
                     >
                         Home {% if active_tab=='home' %}<span
                             class="visually-hidden"
-                        >
-                            (current)</span
+                            >(current)</span
                         >{% endif %}
                     </button>
 
+                    <!-- Game -->
                     <button
                         id="tab-game"
                         type="button"
@@ -168,11 +196,11 @@
                     >
                         Play Game {% if active_tab=='game' %}<span
                             class="visually-hidden"
-                        >
-                            (current)</span
+                            >(current)</span
                         >{% endif %}
                     </button>
 
+                    <!-- Scores -->
                     <button
                         id="tab-scores"
                         type="button"
@@ -188,50 +216,51 @@
                     >
                         Top Scores {% if active_tab=='scores' %}<span
                             class="visually-hidden"
-                        >
-                            (current)</span
+                            >(current)</span
                         >{% endif %}
                     </button>
 
-                    <button
-                        id="tab-signin"
-                        type="button"
-                        class="tab {% if active_tab=='signin' %}is-active{% endif %}"
-                        role="tab"
-                        aria-selected="{% if active_tab=='signin' %}true{% else %}false{% endif %}"
-                        aria-controls="main"
-                        tabindex="{% if active_tab=='signin' %}0{% else %}-1{% endif %}"
-                        hx-get="{{ url_for('signin') }}"
-                        hx-target="#main"
-                        hx-swap="innerHTML"
-                        hx-push-url="true"
-                    >
-                        Sign In {% if active_tab=='signin' %}<span
-                            class="visually-hidden"
+                    <span id="guest-nav">
+                        {% if not current_user %}
+                        <button
+                            id="tab-signin"
+                            type="button"
+                            class="tab {% if active_tab=='signin' %}is-active{% endif %}"
+                            role="tab"
+                            aria-selected="{% if active_tab=='signin' %}true{% else %}false{% endif %}"
+                            aria-controls="main"
+                            tabindex="{% if active_tab=='signin' %}0{% else %}-1{% endif %}"
+                            hx-get="{{ url_for('signin') }}"
+                            hx-target="#main"
+                            hx-swap="innerHTML"
+                            hx-push-url="true"
                         >
-                            (current)</span
-                        >{% endif %}
-                    </button>
+                            Sign In {% if active_tab=='signin' %}<span
+                                class="visually-hidden"
+                                >(current)</span
+                            >{% endif %}
+                        </button>
 
-                    <button
-                        id="tab-signup"
-                        type="button"
-                        class="tab {% if active_tab=='signup' %}is-active{% endif %}"
-                        role="tab"
-                        aria-selected="{% if active_tab=='signup' %}true{% else %}false{% endif %}"
-                        aria-controls="main"
-                        tabindex="{% if active_tab=='signup' %}0{% else %}-1{% endif %}"
-                        hx-get="{{ url_for('signup') }}"
-                        hx-target="#main"
-                        hx-swap="innerHTML"
-                        hx-push-url="true"
-                    >
-                        Register {% if active_tab=='signup' %}<span
-                            class="visually-hidden"
+                        <button
+                            id="tab-signup"
+                            type="button"
+                            class="tab {% if active_tab=='signup' %}is-active{% endif %}"
+                            role="tab"
+                            aria-selected="{% if active_tab=='signup' %}true{% else %}false{% endif %}"
+                            aria-controls="main"
+                            tabindex="{% if active_tab=='signup' %}0{% else %}-1{% endif %}"
+                            hx-get="{{ url_for('signup') }}"
+                            hx-target="#main"
+                            hx-swap="innerHTML"
+                            hx-push-url="true"
                         >
-                            (current)</span
-                        >{% endif %}
-                    </button>
+                            Register {% if active_tab=='signup' %}<span
+                                class="visually-hidden"
+                                >(current)</span
+                            >{% endif %}
+                        </button>
+                        {% endif %}
+                    </span>
                 </div>
             </div>
         </nav>

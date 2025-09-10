@@ -1,199 +1,204 @@
 {% set HX = request.headers.get("HX-Request") %} {% if HX %}
 <section id="game" class="panel">
-  <h2>Game</h2>
+    <h2>Game</h2>
+    {% if current_user %}
+    <p class="status">
+        Commander: {{ current_user.display_name or current_user.username }}
+    </p>
+    {% endif %}
 
-  <div class="game-controls">
-    <div class="size-selector">
-      <label for="board-size" class="size-label">Board Size:</label>
-      <select
-        id="board-size"
-        class="size-select"
-        hx-post="/new"
-        hx-target="#board"
-        hx-swap="innerHTML"
-        hx-include="[name='board-size']"
-        hx-on::after-request="
+    <div class="game-controls">
+        <div class="size-selector">
+            <label for="board-size" class="size-label">Board Size:</label>
+            <select
+                id="board-size"
+                class="size-select"
+                hx-post="/new"
+                hx-target="#board"
+                hx-swap="innerHTML"
+                hx-include="[name='board-size']"
+                hx-on::after-request="
           document.getElementById('boardSection').hidden=false;
           document.getElementById('status').textContent='Board size changed - New game ready';
         "
-        name="board-size"
-      >
-        <option value="6">6×6 (Mobile)</option>
-        <option value="8" selected>8×8 (Standard)</option>
-        <option value="10">10×10 (Classic)</option>
-      </select>
-    </div>
+                name="board-size"
+            >
+                <option value="6">6×6 (Mobile)</option>
+                <option value="8" selected>8×8 (Standard)</option>
+                <option value="10">10×10 (Classic)</option>
+            </select>
+        </div>
 
-    <div class="actions">
-      <button
-        type="button"
-        class="btn btn-primary"
-        hx-post="/new"
-        hx-target="#board"
-        hx-swap="innerHTML"
-        hx-include="[name='board-size']"
-        hx-on::after-request="
+        <div class="actions">
+            <button
+                type="button"
+                class="btn btn-primary"
+                hx-post="/new"
+                hx-target="#board"
+                hx-swap="innerHTML"
+                hx-include="[name='board-size']"
+                hx-on::after-request="
           document.getElementById('boardSection').hidden=false;
           document.getElementById('status').textContent='New game ready';
         "
-        aria-describedby="status"
-      >
-        New Game
-      </button>
+                aria-describedby="status"
+            >
+                New Game
+            </button>
 
-      <button
-        type="button"
-        class="btn btn-secondary"
-        id="reset-btn"
-        hx-post="/reset"
-        hx-target="#board"
-        hx-swap="innerHTML"
-        hx-include="[name='board-size']"
-        hx-on::after-request="
+            <button
+                type="button"
+                class="btn btn-secondary"
+                id="reset-btn"
+                hx-post="/reset"
+                hx-target="#board"
+                hx-swap="innerHTML"
+                hx-include="[name='board-size']"
+                hx-on::after-request="
           document.getElementById('status').textContent='Game reset';
         "
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-
-  <div class="game-status">
-    <span id="status" class="status" role="status" aria-live="polite">
-      Select board size and start a new game
-    </span>
-    <div id="game-stats" class="game-stats">
-      <span id="shots-fired">Shots: 0</span>
-      <span id="hits-count">Hits: 0</span>
-      <span id="ships-remaining">Ships: 0</span>
-    </div>
-  </div>
-
-  <section id="boardSection" class="board-wrap" hidden>
-    <h3 class="visually-hidden">Battle Grid</h3>
-    <div class="board-container">
-      <div
-        id="board"
-        class="board"
-        role="region"
-        aria-label="Battle grid"
-      ></div>
+            >
+                Reset
+            </button>
+        </div>
     </div>
 
-    <div class="game-legend">
-      <div class="legend-item">
-        <span class="legend-symbol hit">×</span>
-        <span class="legend-text">Hit</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-symbol miss">•</span>
-        <span class="legend-text">Miss</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-symbol empty">&nbsp;</span>
-        <span class="legend-text">Unguessed</span>
-      </div>
+    <div class="game-status">
+        <span id="status" class="status" role="status" aria-live="polite">
+            Select board size and start a new game
+        </span>
+        <div id="game-stats" class="game-stats">
+            <span id="shots-fired">Shots: 0</span>
+            <span id="hits-count">Hits: 0</span>
+            <span id="ships-remaining">Ships: 0</span>
+        </div>
     </div>
-  </section>
+
+    <section id="boardSection" class="board-wrap" hidden>
+        <h3 class="visually-hidden">Battle Grid</h3>
+        <div class="board-container">
+            <div
+                id="board"
+                class="board"
+                role="region"
+                aria-label="Battle grid"
+            ></div>
+        </div>
+
+        <div class="game-legend">
+            <div class="legend-item">
+                <span class="legend-symbol hit">×</span>
+                <span class="legend-text">Hit</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-symbol miss">•</span>
+                <span class="legend-text">Miss</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-symbol empty">&nbsp;</span>
+                <span class="legend-text">Unguessed</span>
+            </div>
+        </div>
+    </section>
 </section>
 
 {% else %} {% extends "base.html" %} {% set active_tab = 'game' %} {% block
 title %}Battleship Revamp — Game{% endblock %} {% block content %}
 <section id="game" class="panel">
-  <h2>Game</h2>
+    <h2>Game</h2>
 
-  <div class="game-controls">
-    <div class="size-selector">
-      <label for="board-size" class="size-label">Board Size:</label>
-      <select
-        id="board-size"
-        class="size-select"
-        hx-post="/new"
-        hx-target="#board"
-        hx-swap="innerHTML"
-        hx-include="[name='board-size']"
-        hx-on::after-request="
+    <div class="game-controls">
+        <div class="size-selector">
+            <label for="board-size" class="size-label">Board Size:</label>
+            <select
+                id="board-size"
+                class="size-select"
+                hx-post="/new"
+                hx-target="#board"
+                hx-swap="innerHTML"
+                hx-include="[name='board-size']"
+                hx-on::after-request="
           document.getElementById('boardSection').hidden=false;
           document.getElementById('status').textContent='Board size changed - New game ready';
         "
-        name="board-size"
-      >
-        <option value="6">6×6 (Mobile)</option>
-        <option value="8" selected>8×8 (Standard)</option>
-        <option value="10">10×10 (Classic)</option>
-      </select>
-    </div>
+                name="board-size"
+            >
+                <option value="6">6×6 (Mobile)</option>
+                <option value="8" selected>8×8 (Standard)</option>
+                <option value="10">10×10 (Classic)</option>
+            </select>
+        </div>
 
-    <div class="actions">
-      <button
-        type="button"
-        class="btn btn-primary"
-        hx-post="/new"
-        hx-target="#board"
-        hx-swap="innerHTML"
-        hx-include="[name='board-size']"
-        hx-on::after-request="
+        <div class="actions">
+            <button
+                type="button"
+                class="btn btn-primary"
+                hx-post="/new"
+                hx-target="#board"
+                hx-swap="innerHTML"
+                hx-include="[name='board-size']"
+                hx-on::after-request="
           document.getElementById('boardSection').hidden=false;
           document.getElementById('status').textContent='New game ready';
         "
-        aria-describedby="status"
-      >
-        New Game
-      </button>
+                aria-describedby="status"
+            >
+                New Game
+            </button>
 
-      <button
-        type="button"
-        class="btn btn-secondary"
-        id="reset-btn"
-        hx-post="/reset"
-        hx-target="#board"
-        hx-swap="innerHTML"
-        hx-include="[name='board-size']"
-        hx-on::after-request="
+            <button
+                type="button"
+                class="btn btn-secondary"
+                id="reset-btn"
+                hx-post="/reset"
+                hx-target="#board"
+                hx-swap="innerHTML"
+                hx-include="[name='board-size']"
+                hx-on::after-request="
           document.getElementById('status').textContent='Game reset';
         "
-      >
-        Reset
-      </button>
-    </div>
-  </div>
-
-  <div class="game-status">
-    <span id="status" class="status" role="status" aria-live="polite">
-      Select board size and start a new game
-    </span>
-    <div id="game-stats" class="game-stats">
-      <span id="shots-fired">Shots: 0</span>
-      <span id="hits-count">Hits: 0</span>
-      <span id="ships-remaining">Ships: 0</span>
-    </div>
-  </div>
-
-  <section id="boardSection" class="board-wrap" hidden>
-    <h3 class="visually-hidden">Battle Grid</h3>
-    <div class="board-container">
-      <div
-        id="board"
-        class="board"
-        role="region"
-        aria-label="Battle grid"
-      ></div>
+            >
+                Reset
+            </button>
+        </div>
     </div>
 
-    <div class="game-legend">
-      <div class="legend-item">
-        <span class="legend-symbol hit">×</span>
-        <span class="legend-text">Hit</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-symbol miss">•</span>
-        <span class="legend-text">Miss</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-symbol empty">&nbsp;</span>
-        <span class="legend-text">Unguessed</span>
-      </div>
+    <div class="game-status">
+        <span id="status" class="status" role="status" aria-live="polite">
+            Select board size and start a new game
+        </span>
+        <div id="game-stats" class="game-stats">
+            <span id="shots-fired">Shots: 0</span>
+            <span id="hits-count">Hits: 0</span>
+            <span id="ships-remaining">Ships: 0</span>
+        </div>
     </div>
-  </section>
+
+    <section id="boardSection" class="board-wrap" hidden>
+        <h3 class="visually-hidden">Battle Grid</h3>
+        <div class="board-container">
+            <div
+                id="board"
+                class="board"
+                role="region"
+                aria-label="Battle grid"
+            ></div>
+        </div>
+
+        <div class="game-legend">
+            <div class="legend-item">
+                <span class="legend-symbol hit">×</span>
+                <span class="legend-text">Hit</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-symbol miss">•</span>
+                <span class="legend-text">Miss</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-symbol empty">&nbsp;</span>
+                <span class="legend-text">Unguessed</span>
+            </div>
+        </div>
+    </section>
 </section>
 {% endblock %} {% endif %}

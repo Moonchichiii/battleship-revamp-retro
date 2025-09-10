@@ -8,6 +8,44 @@
     hx-on::after-settle="this.focus()"
 >
     {{ message }}
+
+    <!-- OOB: update header welcome + logout -->
+    <div id="auth-header" hx-swap-oob="innerHTML">
+        <span>Welcome, {{ user_display or 'Player' }}!</span>
+        <button
+            class="btn btn-secondary"
+            hx-post="/auth/logout"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+        >
+            Logout
+        </button>
+    </div>
+
+    <!-- OOB: remove guest nav buttons -->
+    <span id="guest-nav" hx-swap-oob="delete"></span>
+
+    {% if show_login_link %}
+    <div style="margin-top: 0.75rem">
+        <button
+            type="button"
+            class="btn btn-secondary"
+            hx-get="/signin"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+        >
+            Sign In Now
+        </button>
+    </div>
+    {% endif %} {% if redirect_url %}
+    <script>
+        setTimeout(() => {
+            window.location.href = "{{ redirect_url }}";
+        }, 600);
+    </script>
+    {% endif %}
 </div>
 {% else %}
 <div

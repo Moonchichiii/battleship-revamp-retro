@@ -1,4 +1,4 @@
-"""Unit tests for the Battleship Revamp application."""
+﻿"""Unit tests for the Battleship Revamp application."""
 
 from __future__ import annotations
 
@@ -6,14 +6,14 @@ import importlib
 from http import HTTPStatus
 from unittest.mock import Mock
 
-import pytest  # type: ignore[import-not-found]
+import pytest
 from fastapi.testclient import TestClient
 
 from main import app, is_hx
 
 
 # pylint: disable=redefined-outer-name
-@pytest.fixture()  # noqa: PT001
+@pytest.fixture()
 def client_fx() -> TestClient:
     """Fixture to provide a test client."""
     return TestClient(app)

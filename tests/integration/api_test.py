@@ -1,10 +1,10 @@
-"""Integration tests for API endpoints."""
+﻿"""Integration tests for API endpoints."""
 
 from __future__ import annotations
 
 from http import HTTPStatus
 
-import pytest  # type: ignore[import-not-found]
+import pytest
 from fastapi.testclient import TestClient
 
 from main import app
@@ -12,7 +12,7 @@ from main import app
 # pylint: disable=redefined-outer-name
 
 
-@pytest.fixture()  # noqa: PT001
+@pytest.fixture()
 def client() -> TestClient:
     """Create test client for integration tests."""
     return TestClient(app)

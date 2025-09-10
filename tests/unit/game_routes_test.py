@@ -1,11 +1,11 @@
-"""Tests for game routes and HTMX endpoints."""
+﻿"""Tests for game routes and HTMX endpoints."""
 
 from __future__ import annotations
 
 from http import HTTPStatus
 from unittest.mock import patch
 
-import pytest  # type: ignore[import-not-found]
+import pytest
 from fastapi.responses import HTMLResponse
 from fastapi.testclient import TestClient
 
@@ -29,7 +29,7 @@ ARG_NAME_INDEX = 1
 ARG_CONTEXT_INDEX = 2
 
 
-@pytest.fixture()  # noqa: PT001
+@pytest.fixture()
 def client() -> TestClient:
     """Create test client."""
     return TestClient(app)

@@ -1,27 +1,61 @@
-{% extends "base.html" %} {% set active_tab = "scores" %} {% block title
-%}Battleship Revamp — Top Scores{% endblock %} {% block content %}
+{% set HX = request.headers.get("HX-Request") %} {% if HX %}
+
 <section id="scores" class="panel">
-  <h2>Top Scores</h2>
-
-  <div class="board-wrap" role="region" aria-label="Top Scores">
-    <table style="width: 100%; border-collapse: collapse; text-align: left">
-      <thead>
-        <tr>
-          <th style="padding: 0.5rem; border-bottom: 1px solid var(--g)">#</th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid var(--g)">
-            Player
-          </th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid var(--g)">
-            Score
-          </th>
-          <th style="padding: 0.5rem; border-bottom: 1px solid var(--g)">
-            Date
-          </th>
-        </tr>
-      </thead>
-
-      {% include "_scores_tbody.html" %}
-    </table>
-  </div>
+    <h2>Top Scores</h2>
+    <div class="board-wrap" role="region" aria-label="Top Scores">
+        <table style="width: 100%; border-collapse: collapse; text-align: left">
+            <thead>
+                <tr>
+                    <th
+                        style="
+                            padding: 0.5rem;
+                            border-bottom: 1px solid var(--g);
+                        "
+                    >
+                        #
+                    </th>
+                    <th
+                        style="
+                            padding: 0.5rem;
+                            border-bottom: 1px solid var(--g);
+                        "
+                    >
+                        Player
+                    </th>
+                    <th
+                        style="
+                            padding: 0.5rem;
+                            border-bottom: 1px solid var(--g);
+                        "
+                    >
+                        Score
+                    </th>
+                    <th
+                        style="
+                            padding: 0.5rem;
+                            border-bottom: 1px solid var(--g);
+                        "
+                    >
+                        Date
+                    </th>
+                </tr>
+            </thead>
+            {% include "_scores_tbody.html" %}
+        </table>
+    </div>
 </section>
-{% endblock %}
+
+{% else %} {% extends "base.html" %} {% set active_tab = "scores" %} {% block
+title %}Battleship Revamp — Top Scores{% endblock %} {% block content %}
+<section id="scores" class="panel">
+    <h2>Top Scores</h2>
+    <div class="board-wrap" role="region" aria-label="Top Scores">
+        <table style="width: 100%; border-collapse: collapse; text-align: left">
+            <thead>
+                …same as above…
+            </thead>
+            {% include "_scores_tbody.html" %}
+        </table>
+    </div>
+</section>
+{% endblock %} {% endif %}

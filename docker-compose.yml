@@ -5,10 +5,13 @@ secrets:
     file: ./secrets/pgadmin_password.txt
   app_secret_key:
     file: ./secrets/app_secret_key.txt
+  github_client_id:
+    file: ./secrets/github_client_id.txt
+  github_client_secret:
+    file: ./secrets/github_client_secret.txt
 
 services:
   app:
-    container_name: battleship-app
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,14 +21,24 @@ services:
       - .env
     environment:
       - ENVIRONMENT=production
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}@db:5432/${POSTGRES_DB:-battleship_revamp}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-battleship_revamp}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - SECRET_KEY_FILE=/run/secrets/app_secret_key
+      - GITHUB_CLIENT_ID_FILE=/run/secrets/github_client_id
+      - GITHUB_CLIENT_SECRET_FILE=/run/secrets/github_client_secret
     secrets:
       - app_secret_key
       - postgres_password
+      - github_client_id
+      - github_client_secret
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -35,7 +48,6 @@ services:
 
   db:
     image: postgres:17-alpine
-    container_name: battleship-db
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-battleship_revamp}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -59,7 +71,6 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: battleship-pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@battleship.dev}
       PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
@@ -75,9 +86,7 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
-    profiles:
-      - dev
-      - development
+    profiles: [dev, development]
 
 volumes:
   postgres_data:
