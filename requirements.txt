@@ -20,6 +20,7 @@ passlib[argon2]==1.7.4
 email-validator==2.1.2
 python-jose[cryptography]==3.5.0
 
+
 # Core
 pydantic==2.11.7
 python-decouple==3.8
