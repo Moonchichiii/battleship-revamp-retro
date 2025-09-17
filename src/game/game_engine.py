@@ -86,20 +86,28 @@ class Game:
         """Get the fleet configuration for the current board size."""
         return FLEET_CONFIGS.get(self.size, FLEET_CONFIGS[8])
 
-    def get_stats(self: Game) -> dict[str, int | float]:
+    def get_stats(self: Game) -> dict[str, int | float | bool]:
         """Get current game statistics."""
         shots_fired = len(self.hits) + len(self.misses)
         accuracy = len(self.hits) / shots_fired * 100 if shots_fired > 0 else 0.0
         ships_remaining = len(self.ships) - len(self.hits)
+        total_ship_cells = len(self.ships)
+
+        # Calculate percentage of ships remaining
+        percent_ships_remaining = (
+            ships_remaining / total_ship_cells * 100 if total_ship_cells > 0 else 0.0
+        )
 
         return {
             "shots_fired": shots_fired,
             "hits": len(self.hits),
             "accuracy": round(accuracy, 1),
             "ships_remaining": ships_remaining,
-            "total_ship_cells": len(self.ships),
+            "total_ship_cells": total_ship_cells,
+            "percent_ships_remaining": round(percent_ships_remaining, 1),
             "game_over": self.ships.issubset(self.hits),
             "board_size": self.size,
+            "total_cells": self.size * self.size,  # Added for template compatibility
         }
 
     def place_fleet(self: Game) -> None:
