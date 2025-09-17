@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-import os
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 from urllib.parse import quote_plus
 
+from decouple import config
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
     from collections.abc import Iterator
-
 
 # ---- Exceptions -------------------------------------------------------------
 
@@ -34,10 +36,10 @@ class MissingPostgresPasswordError(RuntimeError):
     """Raised when no Postgres password is provided via env/secret."""
 
     def __init__(self) -> None:
-        """Initialize the error indicating a missing Postgres password and explain remediation."""
+        """Initialize the error indicating a missing Postgres password."""
         super().__init__(
             "POSTGRES_PASSWORD missing. Set POSTGRES_PASSWORD, "
-            "POSTGRES_PASSWORD_FILE, or provide a Docker secret.",
+            "POSTGRES_PASSWORD_FILE, or provide a Docker secret at /run/secrets/postgres_password",
         )
 
 
@@ -52,6 +54,7 @@ class Base(DeclarativeBase):
 
 
 def _read_secret_file(p: str) -> str | None:
+    """Read secret from file path, return None if not readable."""
     try:
         return Path(p).read_text(encoding="utf-8-sig").strip()
     except (OSError, UnicodeDecodeError):
@@ -59,99 +62,119 @@ def _read_secret_file(p: str) -> str | None:
 
 
 def _get_secret_env(name: str) -> str | None:
-    v = os.getenv(name)
-    if v:
-        return v.strip()
+    """Get secret from env var, env file, or Docker secret location."""
+    # Direct environment variable using decouple (typed)
+    value: str | None = config(name, default=None, cast=str)
+    if value:
+        return value.strip()
 
-    fp = os.getenv(f"{name}_FILE")
-    if fp and Path(fp).exists():
-        v = _read_secret_file(fp)
-        if v:
-            return v
+    try:
+        file_path: str | None = config(f"{name}_FILE", default=None, cast=str)
+        if file_path and Path(file_path).exists():
+            secret_value = _read_secret_file(file_path)
+            if secret_value is not None:
+                return secret_value
+    except (TypeError, ValueError, OSError):
+        logger.exception("Failed to read secret file for %s", name)
 
-    guess = Path(f"/run/secrets/{name.lower()}")
-    if guess.exists():
-        v = _read_secret_file(str(guess))
-        if v:
-            return v
+    # Docker secrets convention
+    docker_secret_path = Path(f"/run/secrets/{name.lower()}")
+    if docker_secret_path.exists():
+        secret_value = _read_secret_file(str(docker_secret_path))
+        if secret_value is not None:
+            return secret_value
+
     return None
 
 
-def _env_bool(key: str, *, default: bool = False) -> bool:
-    raw = os.getenv(key)
-    return default if raw is None else raw.lower() in {"1", "true", "yes", "on"}
+def _normalize_postgres_url(url: str) -> str:
+    """Normalize postgres:// URLs to postgresql+psycopg:// format."""
+    # Handle legacy postgres:// URLs
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+
+    # Convert to psycopg driver
+    if url.startswith("postgresql+psycopg2://"):
+        url = url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+
+    return url
 
 
-def _env_int(key: str, default: int) -> int:
-    raw = os.getenv(key)
-    try:
-        return int(raw) if raw is not None else default
-    except ValueError:
-        return default
+def _build_postgres_url() -> str:
+    """Build PostgreSQL URL from component environment variables."""
+    pg_user = config("POSTGRES_USER", default="postgres")
+    pg_host = config("POSTGRES_HOST", default="localhost")
+    pg_port = config("POSTGRES_PORT", default="5432")
+    pg_db = config("POSTGRES_DB", default="battleship_revamp")
+    pg_password = _get_secret_env("POSTGRES_PASSWORD")
+
+    # In testing mode, use the test database name if not explicitly set
+    if TESTING:
+        # Use battleship_revamp_test for testing unless overridden
+        test_db_name = config("POSTGRES_TEST_DB", default="battleship_revamp_test")
+        pg_db = test_db_name
+
+    # Password is required in production, but handle testing scenarios
+    if not pg_password:
+        # In testing, allow passwordless only if explicitly enabled
+        if TESTING and config("ALLOW_PASSWORDLESS_DB", default=False, cast=bool):
+            return f"postgresql+psycopg://{quote_plus(pg_user)}@{pg_host}:{pg_port}/{pg_db}"
+        # Always require password for non-test environments
+        raise MissingPostgresPasswordError
+
+    # Build URL with password (normal case for local dev and production)
+    auth_part = f":{quote_plus(pg_password)}"
+    return (
+        f"postgresql+psycopg://{quote_plus(pg_user)}{auth_part}"
+        f"@{pg_host}:{pg_port}/{pg_db}"
+    )
+
+
+def _get_database_url() -> str:
+    """Get database URL with proper priority order."""
+    # 1. Explicit DATABASE_URL (highest priority)
+    database_url = config("DATABASE_URL", default=None)
+    if database_url:
+        return _normalize_postgres_url(database_url.strip())
+
+    # 2. Test database URL (testing only)
+    if TESTING:
+        test_url = config("TEST_DATABASE_URL", default=None)
+        if test_url:
+            return _normalize_postgres_url(test_url.strip())
+
+    # 3. Build from components
+    return _build_postgres_url()
 
 
 # ---- Mode flags -------------------------------------------------------------
-# True when running under pytest or explicitly set via env.
-TESTING: Final[bool] = os.getenv("PYTEST_CURRENT_TEST") is not None or _env_bool(
-    "TESTING",
-    default=False,
-)
 
+TESTING: Final[bool] = config(
+    "PYTEST_CURRENT_TEST",
+    default=None,
+) is not None or config("TESTING", default=False, cast=bool)
 
-# ---- DATABASE_URL resolution (Postgres only) --------------------------------
+# ---- Database URL resolution ------------------------------------------------
 
-_database_url = (os.getenv("DATABASE_URL") or "").strip()
-_test_database_url = (os.getenv("TEST_DATABASE_URL") or "").strip()
-if _database_url:
-    norm = _database_url.replace("postgres://", "postgresql://", 1)
-    if norm.startswith("postgresql+psycopg2://"):
-        norm = norm.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
-    elif norm.startswith("postgresql://"):
-        norm = norm.replace("postgresql://", "postgresql+psycopg://", 1)
-    try:
-        DATABASE_URL = str(make_url(norm))
-    except ArgumentError as e:
-        details = str(e)
-        raise InvalidDatabaseURLError(details) from e
-elif TESTING and _test_database_url:
-    # Prefer a dedicated test URL when testing
-    try:
-        DATABASE_URL = str(
-            make_url(
-                _test_database_url.replace("postgres://", "postgresql://", 1).replace(
-                    "postgresql+psycopg2://",
-                    "postgresql+psycopg://",
-                    1,
-                ),
-            ),
-        )
-    except ArgumentError as e:
-        raise InvalidDatabaseURLError(str(e)) from e
-else:
-    PG_USER = os.getenv("POSTGRES_USER", "postgres")
-    PG_HOST = os.getenv("POSTGRES_HOST", "localhost")
-    PG_PORT = os.getenv("POSTGRES_PORT", "5432")
-    PG_DB = os.getenv("POSTGRES_DB", "battleship_revamp")
-    PG_PASSWORD = _get_secret_env("POSTGRES_PASSWORD")
+try:
+    DATABASE_URL = _get_database_url()
+    # Validate URL can be parsed
+    make_url(DATABASE_URL)
+except ArgumentError as e:
+    raise InvalidDatabaseURLError(str(e)) from e
 
-    # In tests, don't fail hard at import-time if the password isn't present.
-    if not PG_PASSWORD and not TESTING:
-        raise MissingPostgresPasswordError
-
-    auth_part = f":{quote_plus(PG_PASSWORD)}" if PG_PASSWORD else ""
-    DATABASE_URL = (
-        f"postgresql+psycopg://{quote_plus(PG_USER)}{auth_part}"
-        f"@{PG_HOST}:{PG_PORT}/{PG_DB}"
-    )
+# ---- Engine and Session Setup -----------------------------------------------
 
 engine = create_engine(
     DATABASE_URL,
-    pool_size=_env_int("DATABASE_POOL_SIZE", 20),
-    max_overflow=_env_int("DATABASE_MAX_OVERFLOW", 0),
-    pool_timeout=_env_int("DATABASE_POOL_TIMEOUT", 30),
-    pool_recycle=_env_int("DATABASE_POOL_RECYCLE", 1800),
+    pool_size=config("DATABASE_POOL_SIZE", default=20, cast=int),
+    max_overflow=config("DATABASE_MAX_OVERFLOW", default=0, cast=int),
+    pool_timeout=config("DATABASE_POOL_TIMEOUT", default=30, cast=int),
+    pool_recycle=config("DATABASE_POOL_RECYCLE", default=1800, cast=int),
     pool_pre_ping=True,
-    echo=_env_bool("SQLALCHEMY_ECHO", default=False),
+    echo=config("SQLALCHEMY_ECHO", default=False, cast=bool),
     future=True,
 )
 
@@ -167,4 +190,4 @@ def get_db() -> Iterator[Session]:
         db.close()
 
 
-__all__ = ["TESTING", "Base", "SessionLocal", "engine", "get_db"]
+__all__ = ["DATABASE_URL", "TESTING", "Base", "SessionLocal", "engine", "get_db"]

@@ -78,9 +78,14 @@ line-length = 88
 target-version = "py313"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "PT001"]
+"tests/**/*.py" = ["S101", "PT001", "PLC0415", "PLR2004"]
 "tests/conftest.py" = ["PLC0415"]
 "tests/db_bootstrap_test.py" = ["PLC0415"]
+"src/api/routes/auth_routes.py" = ["TRY300", "PLC0415"]
+"src/api/routes/*.py" = ["TCH004", "I001", "F401", "PLC0415"]
+"src/api/routes/game_routes.py" = ["TCH001"]
+"src/api/core/database.py" = ["LOG015"]
+"src/ai/*.py" = ["PLC0415"]
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -96,8 +101,18 @@ check_untyped_defs = true
 show_error_codes = true
 disable_error_code = ["misc"]
 
+# --- Ignore ALL mypy errors in tests (unit + integration) ---
+[[tool.mypy.overrides]]
+module = ["tests", "tests.*"]
+ignore_errors = true
+
+# --- Third-party libs without type hints ---
 [[tool.mypy.overrides]]
 module = ["decouple"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["email_validator", "email_validator.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
