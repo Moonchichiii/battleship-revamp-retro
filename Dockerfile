@@ -1,40 +1,55 @@
-# ---------- Build stage ----------
-ARG BASE_IMAGE=python:3.12-alpine
-FROM ${BASE_IMAGE} AS builder
+# Multi-stage build for minimal production image
+FROM python:3.12-slim AS builder
 
-# Faster pip; build deps for wheels
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1 PIP_NO_CACHE_DIR=1
-RUN apk add --no-cache build-base gcc musl-dev libffi-dev openssl-dev
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
+# Create wheel directory
+WORKDIR /wheels
+
+# Copy requirements and create wheels
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt
+
+# Production stage
+FROM python:3.12-slim AS production
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+# Set working directory
 WORKDIR /app
 
-# Install runtime deps (use your existing requirements.txt)
-COPY requirements.txt ./
-RUN python -m pip install --upgrade pip \
-    && pip install --prefix=/install --no-cache-dir -r requirements.txt
+# Copy wheels from builder stage
+COPY --from=builder /wheels /wheels
+COPY requirements.txt .
 
-# ---------- Runtime stage ----------
-FROM ${BASE_IMAGE} AS runtime
+# Install Python packages from wheels
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
+    && rm -rf /wheels requirements.txt
 
-ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
-# runtime libs only
-RUN apk add --no-cache curl libffi openssl tzdata libstdc++
+# Copy application code
+COPY --chown=appuser:appuser . .
 
-WORKDIR /app
-
-# bring in site-packages and console scripts
-COPY --from=builder /install /usr/local
-
-# app code
-COPY . .
-
-# non-root
-RUN adduser -D appuser && chown -R appuser:appuser /app
+# Switch to non-root user
 USER appuser
 
+# Expose port
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-    CMD curl -fsS http://localhost:8000/health || exit 1
 
-# prod default
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Production command
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

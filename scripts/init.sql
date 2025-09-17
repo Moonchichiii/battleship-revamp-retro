@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS games (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     player_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    ai_difficulty VARCHAR(20) NOT NULL CHECK (ai_difficulty IN ('rookie', 'veteran', 'admiral', 'legendary')),
+    ai_difficulty VARCHAR(20) NOT NULL CHECK (ai_difficulty IN ('rookie', 'veteran', 'admiral')),
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'abandoned', 'paused')),
     player_board JSONB,
     ai_board JSONB,
@@ -86,16 +86,33 @@ CREATE TABLE IF NOT EXISTS user_achievements (
 );
 
 -- USER_SESSIONS TABLE: Tracks user sessions
+-- FIXED: Changed ip_address from INET to VARCHAR(45) for broader compatibility
 CREATE TABLE IF NOT EXISTS user_sessions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     session_token VARCHAR(255) UNIQUE NOT NULL,
-    ip_address INET,
+    ip_address VARCHAR(45),  -- FIXED: Changed from INET to VARCHAR(45)
     user_agent TEXT,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_activity TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- SCORES TABLE: Simple scoring system for completed games
+CREATE TABLE IF NOT EXISTS scores (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    score INTEGER NOT NULL,
+    shots_fired INTEGER NOT NULL,
+    accuracy DECIMAL(5,2) NOT NULL,
+    board_size INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Scores indexes
+CREATE INDEX IF NOT EXISTS idx_scores_user_id ON scores(user_id);
+CREATE INDEX IF NOT EXISTS idx_scores_score ON scores(score DESC);
+CREATE INDEX IF NOT EXISTS idx_scores_created_at ON scores(created_at);
 
 -- PERFORMANCE INDEXES: Optimized queries
 
@@ -124,7 +141,7 @@ CREATE INDEX IF NOT EXISTS idx_user_achievements_earned_at ON user_achievements(
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_user_id ON user_sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_user_sessions_ip      ON user_sessions(ip_address);
+CREATE INDEX IF NOT EXISTS idx_user_sessions_ip ON user_sessions(ip_address);
 
 -- AUTO-UPDATE TRIGGERS: Updates 'updated_at' timestamps
 
@@ -155,7 +172,6 @@ INSERT INTO achievements (name, description, icon, requirement_type, requirement
     ('Rookie Slayer', 'Defeat the Rookie AI 5 times', '🎯', 'games_won_rookie', 5),
     ('Veteran Hunter', 'Defeat the Veteran AI 3 times', '⚔️', 'games_won_veteran', 3),
     ('Admiral Conqueror', 'Defeat the Admiral AI once', '🛡️', 'games_won_admiral', 1),
-    ('Legend Killer', 'Defeat the Legendary AI', '👑', 'games_won_legendary', 1),
     ('Speed Demon', 'Win a game in under 2 minutes', '⚡', 'win_time_seconds', 120),
     ('Efficiency Expert', 'Win a game with fewer than 20 moves', '🎲', 'win_moves', 20),
     ('Persistent Player', 'Play 10 games', '🔥', 'games_played', 10),
