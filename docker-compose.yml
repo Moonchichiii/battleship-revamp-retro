@@ -27,13 +27,23 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-battleship_revamp}
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - SECRET_KEY_FILE=/run/secrets/app_secret_key
+      - DISABLE_RATE_LIMIT=1
+      - EMAIL_SYNTAX_ONLY=1
       - GITHUB_CLIENT_ID_FILE=/run/secrets/github_client_id
       - GITHUB_CLIENT_SECRET_FILE=/run/secrets/github_client_secret
     secrets:
-      - app_secret_key
-      - postgres_password
-      - github_client_id
-      - github_client_secret
+      - source: postgres_password
+        target: postgres_password
+        mode: "0444"
+      - source: app_secret_key
+        target: app_secret_key
+        mode: "0444"
+      - source: github_client_id
+        target: github_client_id
+        mode: "0444"
+      - source: github_client_secret
+        target: github_client_secret
+        mode: "0444"
     depends_on:
       db:
         condition: service_healthy

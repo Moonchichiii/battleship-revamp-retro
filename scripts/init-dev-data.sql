@@ -1,5 +1,4 @@
 ﻿-- Development Data Initialization
-
 DO $$
 BEGIN
     IF current_setting('log_statement', true) IS NOT NULL THEN

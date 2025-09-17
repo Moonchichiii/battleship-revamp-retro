@@ -18,11 +18,11 @@
         />
         <meta name="author" content="Battleship Revamp" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="{{ request.url }}" />
+        <link rel="canonical" href="{{ request.base_url }}" />
 
         <!-- Open Graph -->
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="{{ request.url }}" />
+        <meta property="og:url" content="{{ request.base_url }}" />
         <meta
             property="og:title"
             content="{% block og_title %}{{ self.title() }}{% endblock %}"
@@ -109,6 +109,19 @@
             <a class="skip-link" href="#main">Skip to main content</a>
             <a class="skip-link" href="#primary-nav">Skip to navigation</a>
         </div>
+        <!-- Mobile Navigation Toggle -->
+        <button
+            class="mobile-nav-toggle"
+            id="mobile-nav-toggle"
+            aria-label="Toggle navigation menu"
+            aria-expanded="false"
+            aria-controls="primary-nav"
+        >
+            <span id="nav-icon">☰</span>
+        </button>
+
+        <!-- Mobile Navigation Overlay -->
+        <div class="nav-overlay" id="nav-overlay" aria-hidden="true"></div>
 
         <header class="site-header" role="banner">
             <div class="container">
@@ -181,6 +194,27 @@
                     </button>
 
                     <!-- Game -->
+                    {% if current_user %}
+                    <button
+                        id="tab-ai"
+                        type="button"
+                        class="tab {% if active_tab=='ai' %}is-active{% endif %}"
+                        role="tab"
+                        aria-selected="{% if active_tab=='ai' %}true{% else %}false{% endif %}"
+                        aria-controls="main"
+                        tabindex="{% if active_tab=='ai' %}0{% else %}-1{% endif %}"
+                        hx-get="{{ url_for('ai_lobby') if url_for else '/ai' }}"
+                        hx-target="#main"
+                        hx-swap="innerHTML"
+                        hx-push-url="true"
+                    >
+                        AI Opponents {% if active_tab=='ai' %}<span
+                            class="visually-hidden"
+                            >(current)</span
+                        >{% endif %}
+                    </button>
+                    {% endif %}
+
                     <button
                         id="tab-game"
                         type="button"
@@ -272,7 +306,7 @@
         <footer class="site-footer" role="contentinfo">
             <div class="container">
                 <p>
-                    &copy; 2025 Battleship Revamp —
+                    &copy; 2025 Battleship Revamp — Built with
                     <a
                         href="https://fastapi.tiangolo.com/"
                         target="_blank"
@@ -287,111 +321,46 @@
                         rel="noopener noreferrer"
                         aria-label="HTMX library (opens in new window)"
                         >HTMX</a
-                    >.
+                    >
+                    • <a href="#main" aria-label="Back to top">↑ Top</a>
                 </p>
             </div>
         </footer>
 
         <script>
-            // Enhanced HTMX navigation with accessibility
+            // Robust tab highlighting: compare each tab's hx-get to current path.
             (function () {
-                // After HTMX swaps, manage tab states and accessibility
-                document.addEventListener("htmx:afterSwap", function () {
-                    const path = location.pathname;
-                    const map = {
-                        "/": "tab-home",
-                        "/game": "tab-game",
-                        "/scores": "tab-scores",
-                        "/signin": "tab-signin",
-                        "/signup": "tab-signup",
-                    };
-
-                    const activeId = map[path] || "tab-home";
-
-                    // Update tab states and ARIA attributes
+                function updateTabs() {
+                    const here = new URL(location.href);
                     document.querySelectorAll(".tabs .tab").forEach((tab) => {
-                        const isActive = tab.id === activeId;
+                        const hx = tab.getAttribute("hx-get");
+                        if (!hx) return;
+                        const tabUrl = new URL(hx, location.origin);
+                        const isActive = tabUrl.pathname === here.pathname;
                         tab.classList.toggle("is-active", isActive);
-                        tab.setAttribute("aria-selected", isActive);
-                        tab.setAttribute("tabindex", isActive ? "0" : "-1");
-
-                        // Update current page indicator
-                        const currentSpan =
-                            tab.querySelector(".visually-hidden");
-                        if (currentSpan) {
-                            currentSpan.textContent = isActive
-                                ? " (current)"
-                                : "";
-                        }
-                    });
-
-                    // Announce page change to screen readers
-                    const pageTitle =
-                        document.querySelector("h1, h2")?.textContent || "Page";
-                    const announcement = document.createElement("div");
-                    announcement.setAttribute("aria-live", "assertive");
-                    announcement.className = "visually-hidden";
-                    announcement.textContent = `Navigated to ${pageTitle}`;
-                    document.body.appendChild(announcement);
-
-                    setTimeout(() => {
-                        if (document.body.contains(announcement)) {
-                            document.body.removeChild(announcement);
-                        }
-                    }, 1000);
-                });
-
-                // Keyboard navigation for tabs
-                document.addEventListener("keydown", function (evt) {
-                    if (evt.target.matches(".tab")) {
-                        const tabs = Array.from(
-                            document.querySelectorAll(".tab")
+                        tab.setAttribute(
+                            "aria-selected",
+                            isActive ? "true" : "false"
                         );
-                        const currentIndex = tabs.indexOf(evt.target);
-                        let nextTab = null;
+                        tab.setAttribute("tabindex", isActive ? "0" : "-1");
+                        const sr = tab.querySelector(".visually-hidden");
+                        if (sr) sr.textContent = isActive ? " (current)" : "";
+                    });
+                }
 
-                        switch (evt.key) {
-                            case "ArrowRight":
-                            case "ArrowDown":
-                                evt.preventDefault();
-                                nextTab = tabs[currentIndex + 1] || tabs[0];
-                                break;
-                            case "ArrowLeft":
-                            case "ArrowUp":
-                                evt.preventDefault();
-                                nextTab =
-                                    tabs[currentIndex - 1] ||
-                                    tabs[tabs.length - 1];
-                                break;
-                            case "Home":
-                                evt.preventDefault();
-                                nextTab = tabs[0];
-                                break;
-                            case "End":
-                                evt.preventDefault();
-                                nextTab = tabs[tabs.length - 1];
-                                break;
-                        }
+                document.addEventListener("DOMContentLoaded", updateTabs);
+                document.addEventListener("htmx:afterSwap", updateTabs);
 
-                        if (nextTab) {
-                            nextTab.focus();
-                        }
-                    }
-                });
-
-                // Error handling
-                document.addEventListener("htmx:responseError", function (evt) {
-                    const errorMsg = document.createElement("div");
-                    errorMsg.setAttribute("role", "alert");
-                    errorMsg.className = "visually-hidden";
-                    errorMsg.textContent =
-                        "Navigation error. Please try again.";
-                    document.body.appendChild(errorMsg);
-
+                // Optional: basic error announcement for HTMX failures
+                document.addEventListener("htmx:responseError", function () {
+                    const el = document.createElement("div");
+                    el.setAttribute("role", "alert");
+                    el.className = "visually-hidden";
+                    el.textContent = "Navigation error. Please try again.";
+                    document.body.appendChild(el);
                     setTimeout(() => {
-                        if (document.body.contains(errorMsg)) {
-                            document.body.removeChild(errorMsg);
-                        }
+                        if (document.body.contains(el))
+                            document.body.removeChild(el);
                     }, 3000);
                 });
             })();
