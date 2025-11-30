@@ -1,0 +1,29 @@
+{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
+endif %} {% block content %}
+<div class="dashboard-grid">
+    <div class="site-header">
+        <h2>Simulation Active: {{ tier|upper }}</h2>
+    </div>
+
+    <!-- Status Area -->
+    <section class="game-status">
+        <h3>Battle Log</h3>
+        <div id="ai-status" class="status-log">
+            {{ status_message | default("Simulation initialized. Engaging
+            enemy.") }}
+        </div>
+    </section>
+
+    <!-- Boards Area -->
+    <div id="boards-container" class="board-wrap">
+        {% include "ai_board_partial.html" %}
+    </div>
+
+    <!-- Controls Area -->
+    <section class="game-controls">
+        <button class="btn" hx-get="/ai" hx-target="#main">
+            Abort Simulation
+        </button>
+    </section>
+</div>
+{% endblock %}

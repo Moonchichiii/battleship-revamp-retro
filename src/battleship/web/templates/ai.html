@@ -1,0 +1,80 @@
+{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
+endif %} {% block title %}Tactical Simulation (AI) — Battleship{% endblock %} {%
+block content %}
+<section class="panel is-active">
+    <div class="site-header">
+        <h2>Tactical Simulation</h2>
+        <div class="subtitle">Select Adversary Intelligence Level</div>
+    </div>
+
+    <div class="game-controls" style="margin-top: 2rem">
+        <div class="actions" style="justify-content: center; gap: 1.5rem">
+            <!-- Cadet -->
+            <button
+                class="btn"
+                hx-post="/ai/start?tier=cadet"
+                hx-target="#main"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            >
+                <span
+                    style="
+                        display: block;
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                    "
+                    >❖</span
+                >
+                TIER 1: CADET
+                <div class="hint" style="margin-top: 0.5rem">
+                    Randomized Patterns
+                </div>
+            </button>
+
+            <!-- Commander -->
+            <button
+                class="btn"
+                hx-post="/ai/start?tier=commander"
+                hx-target="#main"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            >
+                <span
+                    style="
+                        display: block;
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                    "
+                    >❖❖</span
+                >
+                TIER 2: COMMANDER
+                <div class="hint" style="margin-top: 0.5rem">
+                    Hunting Heuristics
+                </div>
+            </button>
+
+            <!-- Admiral -->
+            <button
+                class="btn"
+                hx-post="/ai/start?tier=admiral"
+                hx-target="#main"
+                hx-swap="innerHTML"
+                hx-push-url="true"
+            >
+                <span
+                    style="
+                        display: block;
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                    "
+                    >❖❖❖</span
+                >
+                TIER 3: ADMIRAL
+                <div class="hint" style="margin-top: 0.5rem">
+                    Minimax Algorithm
+                </div>
+            </button>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,54 @@
+<div
+    class="dual-boards"
+    style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    "
+>
+    <!-- Player's View (Where we shoot) -->
+    <div class="board-container" style="flex-direction: column">
+        <h4 class="text-center glow-text">OFFENSIVE GRID</h4>
+        <div class="board" style="--size: {{ state.size }}">
+            {% for r in range(state.size) %} {% for c in range(state.size) %} {%
+            set fired = (r,c) in state.shots %}
+            <button
+                class="cell {{ 'fired' if fired else '' }}"
+                hx-post="/ai/{{ game_id }}/shot"
+                hx-vals='{"r": {{ r }}, "c": {{ c }} }'
+                hx-target="#boards-container"
+                hx-swap="innerHTML"
+                {%
+                if
+                fired
+                %}disabled{%
+                endif
+                %}
+                aria-label="Target {{ r }}, {{ c }}"
+            >
+                {% if fired %}<span class="mark">•</span>{% else %}&nbsp;{%
+                endif %}
+            </button>
+            {% endfor %} {% endfor %}
+        </div>
+    </div>
+
+    <!-- AI's View (Our Ships - Read Only) -->
+    <div class="board-container" style="flex-direction: column">
+        <h4 class="text-center glow-text" style="color: var(--phosphor-alert)">
+            DEFENSIVE GRID
+        </h4>
+        <!--
+           NOTE: You need to implement the read-only rendering of your own ships here.
+           For now, using the same grid structure but disabled.
+        -->
+        <div class="board" style="--size: {{ state.size }}; opacity: 0.8;">
+            {% for r in range(state.size) %} {% for c in range(state.size) %}
+            <div class="cell disabled" style="cursor: default">&nbsp;</div>
+            {% endfor %} {% endfor %}
+        </div>
+        <div class="hint text-center" style="margin-top: 1rem">
+            Enemy Last Move: {{ ai_move if ai_move else 'WAITING' }}
+        </div>
+    </div>
+</div>

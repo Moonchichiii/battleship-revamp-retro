@@ -1,0 +1,25 @@
+{% set items = scores or [] %} {% set start = (offset or 0) %}
+
+<tbody id="scores-body">
+    {% for row in items %}
+    <tr>
+        <td class="rank-col">{{ start + loop.index }}</td>
+        <td>{{ row.player_name }}</td>
+        <td>{{ row.score }}</td>
+        <td>
+            {{ row.created_at.strftime("%Y-%m-%d") if row.created_at else "N/A"
+            }}
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td
+            colspan="4"
+            class="text-center"
+            style="padding: 2rem; color: var(--phosphor-dim)"
+        >
+            [NO DATA] DATABASE EMPTY
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>

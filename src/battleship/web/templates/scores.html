@@ -1,0 +1,22 @@
+{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
+endif %} {% block title %}Battleship Revamp — Top Scores{% endblock %} {% block
+content %}
+<section id="scores" class="panel">
+    <h2>Top Scores</h2>
+
+    <div class="board-wrap" role="region" aria-label="Top Scores">
+        <table class="retro-table">
+            <thead>
+                <tr>
+                    <th class="rank-col">#</th>
+                    <th>Player</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <!-- The partial usually contains the <tbody> and <tr> elements -->
+            {% include "_scores_tbody.html" %}
+        </table>
+    </div>
+</section>
+{% endblock %}

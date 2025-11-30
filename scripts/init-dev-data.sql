@@ -6,12 +6,6 @@ BEGIN
         VALUES ('devuser', 'dev@battleship.local', 99999)
         ON CONFLICT (username) DO NOTHING;
 
-        INSERT INTO games (player_id, ai_difficulty, status)
-        SELECT id, 'rookie', 'active'
-        FROM users
-        WHERE username = 'devuser'
-        ON CONFLICT DO NOTHING;
-
         RAISE NOTICE 'Development test data inserted';
     END IF;
 EXCEPTION

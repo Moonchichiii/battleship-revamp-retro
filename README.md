@@ -205,9 +205,7 @@ Visit [http://localhost:8000](http://localhost:8000)
 
 ### Environment Variables
 
-_Note: The app runs without DB/OAuth today; these variables are for future use.
-
-Create a `.env` file with the following configuration:
+Create a `.env` file with the following configuration. The core game runs without Postgres, but authentication and scores need a real database (Render provides `DATABASE_URL` when you add the managed Postgres add-on).
 
 ```env
 # Database Configuration
@@ -222,6 +220,8 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 SECRET_KEY=your_secret_key
 DEBUG=False
 ALLOWED_HOSTS=localhost,127.0.0.1
+# Auto-create tables on startup (default off in tests, on in prod)
+DB_AUTO_CREATE=1
 ```
 
 ---
@@ -292,28 +292,29 @@ Automated security scanning is integrated into the CI/CD pipeline:
 
 ## 9. Deployment
 
-### Production Deployment
+### Production Deployment (Render)
 
-The application supports multiple deployment strategies:
+This repo is wired for Render’s Container Registry + managed Postgres.
 
-#### Docker Deployment
+1) **Provision Postgres** in Render. Copy the provided `DATABASE_URL`.
+2) **Create Web Service** (Docker) that pulls from `registry.render.com/<SERVICE_ID>/battleship-revamp`. Keep the health check path `/health`.
+3) **Environment variables / secrets** (Render UI):
+   - `DATABASE_URL` (from step 1)
+   - `SECRET_KEY` (generate a random string)
+   - `ENVIRONMENT=production`
+   - `DB_AUTO_CREATE=1` (create SQLAlchemy tables at startup: users, user_sessions, scores)
+   - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` (if enabling GitHub OAuth)
+4) **Deploy**: the GitHub Action `.github/workflows/deploy.yml` builds/pushes the image to Render on successful Security workflow. Render will auto-redeploy when the image tag updates.
+
+Run `scripts/init.sql` once against the Render Postgres instance (e.g., via psql or pgAdmin) to create the current tables (users, user_sessions, scores).
+
+Local smoke test against a real DB:
 
 ```bash
-# Production build
-docker compose -f docker-compose.prod.yml up --build -d
-
-# Health check
+DATABASE_URL=postgresql+psycopg://user:pass@host:5432/db \
+DB_AUTO_CREATE=1 uvicorn main:app --host 0.0.0.0 --port 8000
 curl http://localhost:8000/health
 ```
-
-Visit [http://localhost:8000](http://localhost:8000)
-
-#### Cloud Deployment
-
-- Configured for deployment on major cloud platforms
-- Environment-specific configuration management
-- Automated database migrations
-- Health monitoring and logging
 
 ### Monitoring & Observability
 

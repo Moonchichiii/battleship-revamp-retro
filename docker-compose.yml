@@ -1,8 +1,4 @@
 secrets:
-  postgres_password:
-    file: ./secrets/postgres_password.txt
-  pgadmin_password:
-    file: ./secrets/pgadmin_password.txt
   app_secret_key:
     file: ./secrets/app_secret_key.txt
   github_client_id:
@@ -21,83 +17,21 @@ services:
       - .env
     environment:
       - ENVIRONMENT=production
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_DB=${POSTGRES_DB:-battleship_revamp}
-      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - DATABASE_URL=${DATABASE_URL}
       - SECRET_KEY_FILE=/run/secrets/app_secret_key
       - DISABLE_RATE_LIMIT=1
       - EMAIL_SYNTAX_ONLY=1
       - GITHUB_CLIENT_ID_FILE=/run/secrets/github_client_id
       - GITHUB_CLIENT_SECRET_FILE=/run/secrets/github_client_secret
     secrets:
-      - source: postgres_password
-        target: postgres_password
-        mode: "0444"
-      - source: app_secret_key
-        target: app_secret_key
-        mode: "0444"
-      - source: github_client_id
-        target: github_client_id
-        mode: "0444"
-      - source: github_client_secret
-        target: github_client_secret
-        mode: "0444"
-    depends_on:
-      db:
-        condition: service_healthy
+      - app_secret_key
+      - github_client_id
+      - github_client_secret
     restart: unless-stopped
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1
+    command: uvicorn src.battleship.main:app --host 0.0.0.0 --port 8000 --workers 1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  db:
-    image: postgres:17-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-battleship_revamp}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
-    secrets:
-      - postgres_password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
-      - ./scripts/init-dev-data.sql:/docker-entrypoint-initdb.d/99-dev-data.sql:ro
-    expose:
-      - "5432"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@battleship.dev}
-      PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    secrets:
-      - pgadmin_password
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-      - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: unless-stopped
-    profiles: [dev, development]
-
-volumes:
-  postgres_data:
-  pgadmin_data:

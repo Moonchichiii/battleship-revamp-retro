@@ -1,0 +1,11 @@
+<!-- Used for OOB swaps usually -->
+<div id="game-status-content" class="game-stats">
+    <span>SHOTS: <span id="shots-fired">{{ status.shots_fired }}</span></span>
+    <span>HITS: <span id="hits-count">{{ status.hits }}</span></span>
+    <span>ACCURACY: <span id="accuracy">{{ status.accuracy }}%</span></span>
+
+    <span class="visually-hidden" id="board-size">{{ status.board_size }}</span>
+    <span class="visually-hidden" id="total-cells"
+        >{{ status.total_cells }}</span
+    >
+</div>

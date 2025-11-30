@@ -1,0 +1,51 @@
+{% if ok %}
+<div
+    id="auth-message"
+    class="notice success"
+    role="status"
+    aria-live="polite"
+    tabindex="-1"
+    hx-on::after-settle="this.focus()"
+>
+    [SUCCESS] {{ message }}
+
+    <!-- OOB: Update Header User Info -->
+    <div id="auth-header" hx-swap-oob="innerHTML" class="auth-bar">
+        <span>USER: {{ user_display or 'COMMANDER' }}</span>
+        <button
+            class="btn"
+            hx-post="/auth/logout"
+            hx-target="#main"
+            hx-swap="innerHTML"
+            hx-push-url="true"
+        >
+            Logout
+        </button>
+    </div>
+
+    <!-- OOB: Update Navigation Tabs (Show AI/Scores, Hide Login) -->
+    <!-- Ideally, you swap the whole #primary-nav, but for now we redirect -->
+
+    {% if redirect_url %}
+    <div class="mt-1">Redirecting sequence initiated...</div>
+    <script>
+        setTimeout(() => {
+            window.location.href = "{{ redirect_url }}";
+        }, 800);
+    </script>
+    {% endif %}
+</div>
+
+{% else %}
+<!-- Error State -->
+<div
+    id="auth-message"
+    class="notice error"
+    role="alert"
+    aria-live="assertive"
+    tabindex="-1"
+    hx-on::after-settle="this.focus()"
+>
+    [ERROR] {{ message }}
+</div>
+{% endif %}
