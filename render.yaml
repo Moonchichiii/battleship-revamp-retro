@@ -1,7 +1,7 @@
 services:
   - type: web
+    runtime: docker
     name: battleship-revamp
-    env: docker
     plan: free
     region: frankfurt
     buildCommand: docker build -t battleship .

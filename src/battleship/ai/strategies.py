@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.game.game_engine import Game
+    from src.game.engine import Game
 
 # Constants for AI behavior tuning
 ROOKIE_HUNT_CHANCE = 0.3
