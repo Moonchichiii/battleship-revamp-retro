@@ -19,8 +19,9 @@
         <!-- Styles -->
         <link
             rel="stylesheet"
-            href="{{ url_for('static', path='css/retro.css') }}"
+            href="{{ url_for('static', path='css/retro.css') }}?v={{ STATIC_VERSION }}"
         />
+
         <meta name="theme-color" content="#05050a" />
 
         <!-- Scripts -->
