@@ -38,9 +38,9 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
 # --- FIXED PATHS: Pointing to src/battleship/web/ ---
-BASE_DIR = Path(__file__).resolve().parent  # This is src/battleship/
-STATIC_DIR = BASE_DIR / "web" / "static"  # src/battleship/web/static
-TEMPLATES_DIR = BASE_DIR / "web" / "templates"  # src/battleship/web/templates
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "web" / "static"
+TEMPLATES_DIR = BASE_DIR / "web" / "templates"
 
 # Ensure directories exist to prevent startup crashes
 if not STATIC_DIR.exists():
@@ -82,6 +82,12 @@ async def add_cache_headers(
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "ts": datetime.now(UTC).isoformat()}
+
+
+@app.head("/")
+async def home_head() -> Response:
+    """Handle Render's HEAD health check probe."""
+    return Response(status_code=200)
 
 
 # --- HTML ROUTES ---
