@@ -687,14 +687,14 @@ input:focus {
 /* GitHub button */
 .btn-github {
     background-color: #111418;
-    color: #ffffff;
+    color: var(--phosphor-primary);
     border: 1px solid #3c3f44;
     text-transform: none;
 }
 
 .btn-github:hover {
     background-color: #000000;
-    color: var(--phosphor-primary);
+    color: #ffffff;
     border-color: var(--phosphor-primary);
     box-shadow: var(--glow-box);
 }
