@@ -1,10 +1,14 @@
 name: Deploy to Render
 
 on:
+  # Auto-deploy when Security workflow (image scan) succeeds on main
   workflow_run:
     workflows: ["Security"]
     branches: [main]
     types: [completed]
+
+  # Optional: allow manual deployments from the Actions tab
+  workflow_dispatch:
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -12,22 +16,33 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
+    # Only continue if Security workflow concluded successfully AND was triggered by a push
+    if: >
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+      || github.event_name == 'workflow_dispatch'
+
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Render Container Registry
         env:
           REGISTRY: registry.render.com
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-        run: echo "${RENDER_API_KEY}" | docker login $REGISTRY -u render --password-stdin
+        run: echo "${RENDER_API_KEY}" | docker login "$REGISTRY" -u render --password-stdin
 
       - name: Build and Push Docker Image
         env:
-          IMAGE: registry.render.com/${{ secrets.RENDER_SERVICE_ID }}/battleship-revamp
+          # This must match the image configured in your Render *service*:
+          # registry.render.com/<SERVICE_ID>/battleship-revamp:latest
+          IMAGE: registry.render.com/${{ secrets.RENDER_SERVICE_ID }}/battleship-revamp:latest
         run: |
           docker build -t "$IMAGE" .
           docker push "$IMAGE"

@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    github_id INTEGER UNIQUE,
+    github_id VARCHAR(255) UNIQUE,
+    google_id VARCHAR(255) UNIQUE,
     display_name VARCHAR(100),
     avatar_url TEXT,
     password_hash TEXT,
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS scores (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_scores_user_id ON scores(user_id);
 CREATE INDEX IF NOT EXISTS idx_scores_score ON scores(score DESC);

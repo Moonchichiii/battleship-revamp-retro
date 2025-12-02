@@ -15,6 +15,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import RequestResponseEndpoint
+from starlette.middleware.sessions import SessionMiddleware
 
 from src.battleship.api.routes import scores as scores_routes
 from src.battleship.api.routes.ai import router as ai_router
@@ -25,6 +26,12 @@ from src.battleship.api.routes.game import router as game_router
 from src.battleship.core.database import TESTING, Base, engine
 
 app = FastAPI(title="Battleship Revamp")
+
+# --- IMPORTANT: Add Session Middleware for OAuth to work! ---
+# You need a secret key here. In production, load this from env.
+app.add_middleware(
+    SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "super-secret-dev-key")
+)
 
 # Performance optimizations
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -43,6 +50,14 @@ if not TEMPLATES_DIR.exists():
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+# --- THE FIX STARTS HERE ---
+# We must explicitly tell the template engine that these variables exist.
+# Otherwise {% if GITHUB_CLIENT_ID %} is always False.
+templates.env.globals["GITHUB_CLIENT_ID"] = bool(os.getenv("GITHUB_CLIENT_ID"))
+templates.env.globals["GOOGLE_CLIENT_ID"] = bool(os.getenv("GOOGLE_CLIENT_ID"))
+# --- THE FIX ENDS HERE ---
+
 logger = logging.getLogger(__name__)
 
 # DB Config

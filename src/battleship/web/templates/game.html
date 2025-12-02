@@ -1,55 +1,12 @@
-<!-- Smart Inheritance: If HTMX request, just render content. If full load, extend base. -->
-{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
-endif %} {% block content %}
+{% if not request.headers.get("HX-Request") %}{% extends "base.html" %}{% endif
+%} {% block content %}
 <div class="dashboard-grid">
-    <!-- Header Area (for Grid) -->
-    <div class="site-header">
+    <!-- Header Area (for Grid only, not the site header) -->
+    <div class="game-header">
         <h2>Tactical Interface</h2>
     </div>
 
-    <!-- Controls Area -->
-    <section class="game-controls">
-        <h3>System Controls</h3>
-
-        <div class="control-group">
-            <label for="board-size">Grid Resolution:</label>
-            <select
-                id="board-size"
-                name="board-size"
-                class="size-select"
-                hx-post="/new"
-                hx-target="#boardSection"
-                hx-swap="outerHTML"
-                hx-include="[name='board-size']"
-            >
-                <option value="6">6x6 (Mobile)</option>
-                <option value="8" selected>8x8 (Standard)</option>
-                <option value="10">10x10 (Classic)</option>
-            </select>
-        </div>
-
-        <div class="actions">
-            <button
-                class="btn"
-                hx-post="/new"
-                hx-target="#boardSection"
-                hx-include="[name='board-size']"
-            >
-                Initialize New Game
-            </button>
-
-            <button
-                class="btn"
-                hx-post="/reset"
-                hx-target="#boardSection"
-                hx-include="[name='board-size']"
-            >
-                Reset Coords
-            </button>
-        </div>
-    </section>
-
-    <!-- Status Area -->
+    <!-- Status Area – stays ABOVE board on mobile -->
     <section class="game-status">
         <h3>Mission Log</h3>
         <div id="status" class="status-log">
@@ -63,8 +20,7 @@ endif %} {% block content %}
     </section>
 
     <!-- Board Area -->
-    <section id="boardSection" class="board-wrap">
-        <!-- FIXED: Removed 'partials/' prefix -->
+    <section class="board-wrap">
         {% include "_board.html" %}
 
         <div class="game-legend">
@@ -80,6 +36,25 @@ endif %} {% block content %}
                 >
                 Miss
             </div>
+        </div>
+    </section>
+
+    <!-- Controls Area -->
+    <section class="game-controls">
+        <h3>System Controls</h3>
+
+        <p class="small-label">
+            Grid Resolution: <strong>8x8 (Standard)</strong>
+        </p>
+
+        <div class="actions">
+            <button class="btn" hx-post="/new" hx-target="#boardSection">
+                Initialize New Game
+            </button>
+
+            <button class="btn" hx-post="/reset" hx-target="#boardSection">
+                Reset Coords
+            </button>
         </div>
     </section>
 </div>

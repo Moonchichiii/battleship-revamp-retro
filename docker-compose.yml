@@ -1,34 +1,29 @@
-secrets:
-  app_secret_key:
-    file: ./secrets/app_secret_key.txt
-  github_client_id:
-    file: ./secrets/github_client_id.txt
-  github_client_secret:
-    file: ./secrets/github_client_secret.txt
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+
     ports:
       - "${PORT:-8000}:8000"
+
     env_file:
       - .env
+
     environment:
-      - ENVIRONMENT=production
-      - DATABASE_URL=${DATABASE_URL}
-      - SECRET_KEY_FILE=/run/secrets/app_secret_key
-      - DISABLE_RATE_LIMIT=1
-      - EMAIL_SYNTAX_ONLY=1
-      - GITHUB_CLIENT_ID_FILE=/run/secrets/github_client_id
-      - GITHUB_CLIENT_SECRET_FILE=/run/secrets/github_client_secret
-    secrets:
-      - app_secret_key
-      - github_client_id
-      - github_client_secret
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DATABASE_URL: ${DATABASE_URL}
+      DISABLE_RATE_LIMIT: ${DISABLE_RATE_LIMIT:-1}
+      EMAIL_SYNTAX_ONLY: ${EMAIL_SYNTAX_ONLY:-1}
+      DB_AUTO_CREATE: ${DB_AUTO_CREATE:-1}
+      SECRET_KEY: ${SECRET_KEY}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
     restart: unless-stopped
-    command: uvicorn src.battleship.main:app --host 0.0.0.0 --port 8000 --workers 1
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

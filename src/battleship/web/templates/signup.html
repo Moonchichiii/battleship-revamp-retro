@@ -1,23 +1,58 @@
-{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
-endif %} {% block content %}
-<section id="signup" class="panel is-active" role="tabpanel">
-    <h2>New Personnel Registration</h2>
+{% if not request.headers.get("HX-Request") %}{% extends "base.html" %}{% endif
+%} {% block content %}
+<section id="signup" class="panel auth-panel is-active" role="tabpanel">
+    <h2>New Registration</h2>
 
-    {% if GITHUB_CLIENT_ID %}
+    {% if GITHUB_CLIENT_ID or GOOGLE_CLIENT_ID %}
     <div class="oauth-section">
-        <a href="/auth/github/login" class="btn btn-github">
-            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
-                <path
-                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
-                />
-            </svg>
-            Register via GitHub
-        </a>
-        <div class="auth-separator">:: OR REGISTER MANUALLY ::</div>
+        <div class="oauth-buttons">
+            <!-- GitHub Button -->
+            {% if GITHUB_CLIENT_ID %}
+            <a
+                href="/auth/github/login"
+                class="btn btn-github btn-full oauth-btn"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 16 16"
+                    fill="currentColor"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                    />
+                </svg>
+                <span>Register with GitHub</span>
+            </a>
+            {% endif %}
+
+            <!-- Google Button -->
+            {% if GOOGLE_CLIENT_ID %}
+            <a
+                href="/auth/google/login"
+                class="btn btn-google btn-full oauth-btn"
+            >
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
+                    />
+                </svg>
+                <span>Register with Google</span>
+            </a>
+            {% endif %}
+        </div>
+        <div class="auth-separator">:: OR ::</div>
     </div>
     {% endif %}
 
-    <div id="auth-status" class="visually-hidden"></div>
+    <div id="auth-status" class="visually-hidden" aria-live="polite"></div>
 
     <form
         class="form"
@@ -28,18 +63,19 @@ endif %} {% block content %}
         novalidate
     >
         <div class="form-group">
-            <label for="email">User Email</label>
+            <label for="signup-email">Email Address</label>
             <input
                 type="email"
                 name="email"
-                id="email"
+                id="signup-email"
                 required
                 autocomplete="email"
+                placeholder="commander@example.com"
             />
         </div>
 
         <div class="form-group">
-            <label for="password">Set Passkey</label>
+            <label for="signup-password">Choose Password</label>
             <p id="pwd-hint" class="hint">
                 > Requirements: 8+ chars, Uppercase, Lowercase, Number
             </p>
@@ -47,14 +83,13 @@ endif %} {% block content %}
             <input
                 type="password"
                 name="password"
-                id="password"
+                id="signup-password"
                 required
                 minlength="8"
                 autocomplete="new-password"
                 aria-describedby="pwd-hint"
             />
 
-            <!-- Retro Password Meter -->
             <div class="password-strength">
                 <div class="strength-bar">
                     <div class="strength-fill" id="strength-fill"></div>
@@ -64,7 +99,7 @@ endif %} {% block content %}
         </div>
 
         <div class="form-group">
-            <label for="confirm">Verify Passkey</label>
+            <label for="confirm">Confirm Password</label>
             <input
                 type="password"
                 name="confirm_password"
@@ -74,33 +109,36 @@ endif %} {% block content %}
             />
         </div>
 
-        <button id="signup-btn" type="submit" class="btn" style="width: 100%">
-            <span id="signup-indicator" class="htmx-indicator">...</span>
-            Create Record
-        </button>
+        <div class="form-actions">
+            <button
+                id="signup-btn"
+                type="submit"
+                class="btn btn-primary btn-full btn-with-indicator"
+            >
+                <span id="signup-indicator" class="htmx-indicator">...</span>
+                <span>Register</span>
+            </button>
 
-        <div class="text-center mt-1">
             <button
                 type="button"
-                class="btn"
+                class="btn btn-ghost"
                 hx-get="/signin"
                 hx-target="#main"
                 hx-push-url="true"
             >
-                Return to Login
+                Login
             </button>
         </div>
     </form>
 </section>
 
 <script>
-    // Logic kept simple, but styling relies on CSS classes now
     document.addEventListener("DOMContentLoaded", function () {
-        const pwd = document.getElementById("password");
+        const pwd = document.getElementById("signup-password");
         const bar = document.getElementById("strength-fill");
         const txt = document.getElementById("strength-text");
 
-        if (pwd && bar) {
+        if (pwd && bar && txt) {
             pwd.addEventListener("input", function () {
                 const val = this.value;
                 let score = 0;
@@ -109,16 +147,18 @@ endif %} {% block content %}
                 if (/[0-9]/.test(val)) score++;
                 if (/[^A-Za-z0-9]/.test(val)) score++;
 
-                bar.className = "strength-fill"; // reset
+                bar.className = "strength-fill";
                 if (score > 3) {
                     bar.classList.add("strong");
                     txt.innerText = "[ STRONG ]";
                 } else if (score > 1) {
                     bar.classList.add("medium");
                     txt.innerText = "[ ACCEPTABLE ]";
-                } else {
+                } else if (val.length) {
                     bar.classList.add("weak");
                     txt.innerText = "[ WEAK ]";
+                } else {
+                    txt.innerText = "";
                 }
 
                 bar.style.width = score * 25 + "%";

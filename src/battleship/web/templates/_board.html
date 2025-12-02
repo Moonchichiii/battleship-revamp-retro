@@ -2,7 +2,7 @@
 ai_tier is defined else 'rookie' %}
 
 <!-- Board Container -->
-<div class="board-container">
+<div class="board-container" id="boardSection">
     <div class="board" style="--size: {{ size }};">
         {% for y in range(size) %} {% for x in range(size) %} {% set cell =
         board.cells[y][x] if board is defined else {'hit': False, 'miss': False}
@@ -12,7 +12,6 @@ ai_tier is defined else 'rookie' %}
             class="cell {% if cell.hit %}hit{% elif cell.miss %}miss{% endif %}"
             hx-post="/make-move"
             hx-vals='{"x": {{ x }}, "y": {{ y }}, "ai_tier": "{{ tier }}"}'
-            hx-include="[name='board-size']"
             hx-target="#boardSection"
             hx-swap="outerHTML"
             {%
@@ -25,7 +24,8 @@ ai_tier is defined else 'rookie' %}
             %}
             aria-label="Target {{ x + 1 }}, {{ y + 1 }}"
         >
-            {% if cell.hit %}×{% elif cell.miss %}•{% else %}&nbsp;{% endif %}
+            {% if cell.hit %} × {% elif cell.miss %} • {% else %} &nbsp; {%
+            endif %}
         </button>
         {% endfor %} {% endfor %}
     </div>
@@ -37,8 +37,13 @@ ai_tier is defined else 'rookie' %}
     Target." }}
 </div>
 
-<!-- OOB Update 2: The Scoreboard Numbers (If you calculate them on backend) -->
+<!-- OOB Update 2: The Scoreboard Numbers -->
 {% if game_stats is defined %}
-<div id="shots-count" hx-swap-oob="innerHTML">{{ game_stats.shots }}</div>
+<div id="shots-count" hx-swap-oob="innerHTML">{{ game_stats.shots_fired }}</div>
 <div id="hits-count" hx-swap-oob="innerHTML">{{ game_stats.hits }}</div>
-{% endif %}
+{# Optional extras if you wire them in your HTML #} {#
+<div id="accuracy" hx-swap-oob="innerHTML">{{ game_stats.accuracy }}%</div>
+<div id="ships-remaining" hx-swap-oob="innerHTML">
+    {{ game_stats.ships_remaining }}/{{ game_stats.total_ship_cells }}
+</div>
+#} {% endif %}

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.game.engine import Game
+    from battleship.game.engine import Game
 
 # Constants for AI behavior tuning
 ROOKIE_HUNT_CHANCE = 0.3
@@ -237,7 +237,7 @@ def create_ai(tier: str, game: Game, **kwargs: str) -> BattleshipAI:
     # Check for LLM tier (requires api_key)
     if tier == "llm" and "api_key" in kwargs:
         try:
-            from src.ai.ai_opponent import LLMAIOpponent
+            from battleship.ai.opponent import LLMAIOpponent
 
             return LLMAIOpponent(game, kwargs["api_key"])
         except ImportError:

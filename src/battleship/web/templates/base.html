@@ -6,11 +6,15 @@
             name="viewport"
             content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
+        <meta
+            name="description"
+            content="Battleship Revamp 2025 – retro terminal-style Battleship you can play in the browser, with AI opponents, scoreboards and endless solo games."
+        />
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' fill='%23111'/><path d='M8 2v6h6M8 8l-4 4' stroke='%2339ff14' stroke-width='1.5' stroke-linecap='square'/><circle cx='8' cy='8' r='5' fill='none' stroke='%2339ff14' stroke-width='1'/><circle cx='12' cy='4' r='1' fill='red'/></svg>"
+        />
         <title>{% block title %}Battleship Revamp{% endblock %}</title>
-
-        <!-- Preconnect -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
         <!-- Styles -->
         <link
@@ -29,7 +33,6 @@
                     Battleship <span class="blink">_</span>Revamp
                 </h1>
 
-                <!-- Removed inline style, added class .auth-bar -->
                 <div id="auth-header" class="auth-bar">
                     {% if current_user %}
                     <span
@@ -53,9 +56,9 @@
         <nav id="primary-nav" class="nav" role="navigation">
             <div class="container">
                 <div class="tabs" role="tablist">
-                    <!-- Cleaned up Buttons, styling handled by CSS now -->
                     <button
                         type="button"
+                        role="tab"
                         class="tab {% if active_tab=='home' %}is-active{% endif %}"
                         hx-get="{{ url_for('home') }}"
                         hx-target="#main"
@@ -67,6 +70,7 @@
                     {% if current_user %}
                     <button
                         type="button"
+                        role="tab"
                         class="tab {% if active_tab=='ai' %}is-active{% endif %}"
                         hx-get="{{ url_for('ai_lobby') if url_for else '/ai' }}"
                         hx-target="#main"
@@ -78,6 +82,7 @@
 
                     <button
                         type="button"
+                        role="tab"
                         class="tab {% if active_tab=='game' %}is-active{% endif %}"
                         hx-get="{{ url_for('game') }}"
                         hx-target="#main"
@@ -88,6 +93,7 @@
 
                     <button
                         type="button"
+                        role="tab"
                         class="tab {% if active_tab=='scores' %}is-active{% endif %}"
                         hx-get="{{ url_for('scores') }}"
                         hx-target="#main"
@@ -99,6 +105,7 @@
                     {% if not current_user %}
                     <button
                         type="button"
+                        role="tab"
                         class="tab"
                         hx-get="{{ url_for('signin') }}"
                         hx-target="#main"
@@ -107,6 +114,7 @@
                     </button>
                     <button
                         type="button"
+                        role="tab"
                         class="tab"
                         hx-get="{{ url_for('signup') }}"
                         hx-target="#main"
@@ -122,9 +130,16 @@
             {% block content %}{% endblock %}
         </main>
 
-        <footer class="site-footer">
-            <div class="container">
-                <p>SYSTEM STATUS: ONLINE // BATTLESHIP REVAMP 2025</p>
+        <footer class="site-footer" role="contentinfo">
+            <div class="container footer-inner">
+                <span class="footer-status">
+                    <span class="status-indicator"></span>
+                    SYSTEM STATUS: ONLINE
+                </span>
+
+                <span class="footer-meta">
+                    BATTLESHIP REVAMP 2025 // v0.1.0
+                </span>
             </div>
         </footer>
 

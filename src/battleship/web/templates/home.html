@@ -1,15 +1,12 @@
 {% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
 endif %} {% block title %}Battleship Revamp — Home{% endblock %} {% block
 content %}
-<section
-    id="home"
-    class="panel hero-panel is-active"
-    aria-labelledby="tab-home"
->
-    <h2 class="visually-hidden">Welcome to Battleship</h2>
+<section id="home" class="home-grid">
+    <!-- LEFT: Ship / hero art -->
+    <div class="home-ship">
+        <h2 class="visually-hidden">Welcome to Battleship Revamp</h2>
 
-    <!-- The ASCII Art Class handles all the heavy lifting now -->
-    <pre class="ascii-art" aria-label="ASCII battleship silhouette">
+        <pre class="ascii-art" aria-label="ASCII battleship silhouette">
   ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣽⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⣿⢸⡉⡟⣶⠦⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -28,7 +25,6 @@ content %}
 ⠀⠀⠙⣿⣆⠀⠀⠀⠀⢸⣿⣿⣿⡇⢹⡀⠀⠀⠀⢀⡿⡶⠚⣿⣤⣄⢾⣿⣿⡟⠛⢿⡿⠁⣟⣁⣠⡷⠤⠤⠿⣷⣿⢦⡷⠤⣼⡇⠀⠀⠀⠀⢸⢨⣟⡞⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠈⢿⣧⡀⠀⢀⣿⣿⣿⡿⣿⠀⣇⠀⠀⠀⢸⢰⢻⡾⠿⣿⡏⠀⣈⣫⡤⠴⡖⢳⡒⢻⢀⣰⣷⣄⣠⣿⣿⣿⣧⣳⣶⣀⣧⠀⣀⡤⢶⢸⣾⡟⠙⢤⣀⣀⣀⣀⡀⠀
 ⠀⠀⠀⠀⠈⢻⣷⡄⣸⣿⣿⣿⣷⡿⡇⢸⡄⠀⢀⡏⡞⡼⣧⣀⣬⠖⢻⣁⣸⡧⠤⡷⢺⡗⢺⡿⢿⣿⠟⣙⣿⣿⠉⠙⢿⣿⣿⣿⣞⡭⣚⣻⣾⣯⣿⠓⣲⣶⠤⢾⣻⣿⣳
-⠀⠀⠀⠀⠀⠀⠹⣿⣷⣧⣿⢸⢸⣰⢳⠀⢷⠀⢸⢱⢣⢇⢿⣅⣼⠖⢻⣽⠿⢧⣀⣧⢼⠧⢾⡗⠛⠉⠉⠉⠉⠉⠉⠉⠛⠻⣷⣿⢩⣿⣿⣿⠛⢉⣩⠿⠟⠉⠈⠉⠙⠛⠁
 ⠀⠀⠀⠀⠀⠀⠀⣹⣿⣾⢸⢸⡞⣾⡼⡄⠈⣧⡏⡟⡼⣸⠈⣇⣼⣴⠞⢁⣤⣄⠉⠳⣼⣀⣸⣥⣤⡴⠶⠶⠶⠶⠶⠦⠤⣤⣙⣿⣿⠟⣿⢸⠞⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⢠⠇⡟⣿⣿⣾⡇⡇⡇⢇⠀⢹⣹⢡⢧⡇⢠⣧⠞⢁⣴⡯⢼⠟⢳⣄⠈⠻⣏⣀⣿⣟⡀⠀⠐⣿⠇⠀⠀⣿⣾⣿⡟⢀⣿⠘⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⡾⣸⢁⡇⣷⣿⣇⢸⢻⢸⣀⣏⣧⡜⡼⠀⢸⢁⡴⠋⣏⣀⣾⠤⡾⢚⡟⣾⠛⠛⣻⡿⠟⠻⠿⣿⢷⡷⠿⣿⣿⣿⣷⡞⣿⡆⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -48,8 +44,51 @@ content %}
 ⠀⠀⠀⠀⠀⢿⣷⡶⢿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⣿⡿⠟⠋⠀⠀⠈⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⢸⣿⠀⣸⡿⠟⠛⠛⠛⢻⠟⠉⠀⠾⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠶⠿⠛⠛⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    </pre>
+    </pre
+        >
+    </div>
 
-    <p class="hero-text">Retro fleet initialized.</p>
+    <!-- RIGHT: Rules / messaging -->
+    <div class="home-copy">
+        <h2>Deployment Briefing</h2>
+
+        <p class="tagline">
+            Anyone can play endless skirmishes against themselves — but you must
+            register to challenge the <strong>AI Command Fleet</strong>.
+        </p>
+
+        <ul class="rules-list">
+            <li>Classic Battleship grid with modern targeting telemetry.</li>
+            <li>Play solo for warm-up runs and high-score hunting.</li>
+            <li>Sign in to unlock adaptive AI opponents (rookie → admiral).</li>
+            <li>No ads, no fluff — just pure tactical engagements.</li>
+        </ul>
+
+        <p class="quote">
+            “Sometimes the real enemy is your own targeting system.”
+        </p>
+
+        <div class="home-cta">
+            <button
+                class="btn"
+                hx-get="{{ url_for('game') }}"
+                hx-target="#main"
+                hx-push-url="true"
+            >
+                Enter Training Simulator
+            </button>
+
+            {% if not current_user %}
+            <button
+                class="btn"
+                hx-get="{{ url_for('signup') }}"
+                hx-target="#main"
+                hx-push-url="true"
+            >
+                Register for AI Access
+            </button>
+            {% endif %}
+        </div>
+    </div>
 </section>
 {% endblock %}

@@ -12,11 +12,11 @@ from typing import TYPE_CHECKING, Annotated
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
-# --- FIXED IMPORTS ---
+# --- Local Imports ---
 from src.battleship.core.database import TESTING, Base, get_db
 from src.battleship.core.security import verify_token
 
@@ -52,8 +52,17 @@ class User(Base):
         nullable=False,
         index=True,
     )
-    github_id: Mapped[int | None] = mapped_column(
-        Integer,
+    # Changed from Integer to String to be safe for both providers if needed,
+    # though usually GitHub is int and Google is big string.
+    # Casting int to string is safer long term.
+    github_id: Mapped[str | None] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+    )
+    # NEW: Google ID
+    google_id: Mapped[str | None] = mapped_column(
+        String(255),
         unique=True,
         index=True,
     )
@@ -197,9 +206,13 @@ class AuthService:
         """Get a user by username."""
         return self.db.query(User).filter(User.username == username).first()
 
-    def get_user_by_github_id(self, github_id: int) -> User | None:
+    def get_user_by_github_id(self, github_id: str) -> User | None:
         """Get a user by GitHub ID."""
-        return self.db.query(User).filter(User.github_id == github_id).first()
+        return self.db.query(User).filter(User.github_id == str(github_id)).first()
+
+    def get_user_by_google_id(self, google_id: str) -> User | None:
+        """Get a user by Google ID."""
+        return self.db.query(User).filter(User.google_id == str(google_id)).first()
 
     def create_user(
         self,
@@ -233,12 +246,13 @@ class AuthService:
     def create_oauth_user(
         self,
         email: str,
-        github_id: int,
         username: str,
+        github_id: str | None = None,
+        google_id: str | None = None,
         display_name: str | None = None,
         avatar_url: str | None = None,
     ) -> User:
-        """Create a user from OAuth (GitHub) info."""
+        """Create a user from OAuth info."""
         base = username
         i = 1
         while self.get_user_by_username(username):
@@ -248,7 +262,8 @@ class AuthService:
         user = User(
             email=email.lower(),
             username=username,
-            github_id=github_id,
+            github_id=str(github_id) if github_id else None,
+            google_id=str(google_id) if google_id else None,
             display_name=display_name,
             avatar_url=avatar_url,
             is_active=True,
@@ -263,17 +278,22 @@ class AuthService:
     def update_user_oauth_info(
         self,
         user: User,
-        github_id: int,
+        github_id: str | None = None,
+        google_id: str | None = None,
         display_name: str | None = None,
         avatar_url: str | None = None,
     ) -> User:
         """Update a user's OAuth metadata."""
-        if not user.github_id:
-            user.github_id = github_id
+        if github_id and not user.github_id:
+            user.github_id = str(github_id)
+        if google_id and not user.google_id:
+            user.google_id = str(google_id)
+
         if not user.avatar_url and avatar_url:
             user.avatar_url = avatar_url
         if not user.display_name and display_name:
             user.display_name = display_name
+
         user.is_verified = True
         user.updated_at = datetime.now(UTC)
         self.db.commit()
