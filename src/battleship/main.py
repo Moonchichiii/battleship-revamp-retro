@@ -51,6 +51,10 @@ if not TEMPLATES_DIR.exists():
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
+# Cache-busting: bump APP_VERSION env var on each deploy to force fresh CSS/JS
+APP_VERSION = os.getenv("APP_VERSION", "dev")
+templates.env.globals["STATIC_VERSION"] = APP_VERSION
+
 # --- THE FIX STARTS HERE ---
 # We must explicitly tell the template engine that these variables exist.
 # Otherwise {% if GITHUB_CLIENT_ID %} is always False.
@@ -70,7 +74,8 @@ async def add_cache_headers(
 ) -> Response:
     response = await call_next(request)
     if request.url.path.startswith("/static/"):
-        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        # Short cache while iterating; switch to max-age=31536000 once cache-busting is wired up
+        response.headers["Cache-Control"] = "public, max-age=600"
     return response
 
 
