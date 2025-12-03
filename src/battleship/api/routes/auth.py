@@ -3,26 +3,15 @@
 from __future__ import annotations
 
 import logging
-import secrets
-from datetime import UTC, datetime, timedelta
-from typing import Annotated, cast
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi_sso.sso.base import OpenID
 
 from src.battleship.auth.schemas import TokenResponse, UserInfo
-from src.battleship.auth.service import (
-    AuthRequest,
-    ResponseContext,
-    check_rate_limit,
-    create_session_cookies,
-    github_sso,
-    google_sso,
-    validate_login_credentials,
-    validate_registration_data,
-)
-from src.battleship.core.security import create_access_token
+from src.battleship.auth.service import AuthServiceLogic
+from src.battleship.auth.sso import github_sso, google_sso
+from src.battleship.auth.views import AuthRenderer
 from src.battleship.users import models as user_models
 
 logger = logging.getLogger(__name__)
@@ -37,62 +26,57 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/login", response_class=HTMLResponse)
 def login(
     request: Request,
-    auth_service: Annotated[
-        user_models.AuthService,
-        Depends(user_models.get_auth_service),
-    ],
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
+    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
     remember_raw: Annotated[str | None, Form(alias="remember")] = None,
 ) -> Response:
     """Authenticate and start a session."""
-    try:
-        auth_req = (
-            AuthRequest(request, auth_service)
-            .set_credentials(email, password)
-            .set_remember(remember_raw)
-        )
+    renderer = AuthRenderer(request)
+    logic = AuthServiceLogic(auth_service)
 
-        if error_response := check_rate_limit(auth_req, "login", 10):
-            return error_response
+    # 1. Rate Limit Check
+    if not auth_service.check_rate_limit(request, "login", 10):
+        return renderer.render_result("Too many login attempts. Try again later.", success=False)
 
-        if error_response := validate_login_credentials(auth_req):
-            return error_response
+    # 2. Execute Business Logic
+    result = logic.process_login(email, password)
 
-        user = auth_service.get_user_by_email(auth_req.email)
-        if not user:
-            raise HTTPException(status_code=400, detail="Invalid login state")
+    if not result.success:
+        return renderer.render_result(result.error, success=False)
 
-        auth_service.update_last_login(user)
+    # 3. Success Handling - Generate Tokens
+    user = result.data
+    remember = str(remember_raw or "").lower() in {"1", "true", "on", "yes"}
 
-        is_hx = request.headers.get("HX-Request", "").lower() == "true"
+    session_info = logic.generate_session_data(
+        user,
+        remember,
+        request.headers.get("user-agent"),
+        request.client.host if request.client else None,
+    )
 
-        if is_hx:
-            resp_inner: Response = (
-                ResponseContext(
-                    request,
-                    ok=True,
-                    message=f"Welcome back, {user.display_name or user.username}!",
-                )
-                .add_user_display(user.display_name or user.username)
-                .add_redirect("/game")
-                .build()
-            )
-        else:
-            resp_inner = RedirectResponse(url="/game", status_code=303)
+    # 4. Build Response
+    is_hx = request.headers.get("HX-Request", "").lower() == "true"
+    if is_hx:
+        renderer.with_redirect("/game")
+        renderer.with_user_display(user.display_name or user.username)
+        response = renderer.render_result(f"Welcome back, {user.username}!", success=True)
+    else:
+        response = RedirectResponse(url="/game", status_code=303)
 
-        create_session_cookies(auth_req, resp_inner)
-        return resp_inner
+    # 5. Set Cookies
+    cookie_settings = {
+        "httponly": True,
+        "secure": session_info["secure"],
+        "samesite": "lax",
+        "path": "/",
+    }
 
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Login failed for email %s", email)
-        return ResponseContext(
-            request,
-            ok=False,
-            message="Login failed. Please try again.",
-        ).build()
+    response.set_cookie("session_token", session_info["session_token"], max_age=session_info["max_age"], **cookie_settings)
+    response.set_cookie("access_token", session_info["access_token"], max_age=1800, **cookie_settings)
+
+    return response
 
 
 @router.post("/register", response_class=HTMLResponse)
@@ -101,45 +85,26 @@ async def register(
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
     confirm_password: Annotated[str, Form(...)],
-    auth_service: Annotated[
-        user_models.AuthService,
-        Depends(user_models.get_auth_service),
-    ],
+    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
 ) -> HTMLResponse:
     """Create a new local account."""
-    try:
-        auth_req = (
-            AuthRequest(request, auth_service)
-            .set_credentials(email, password)
-            .set_confirm_password(confirm_password)
-        )
+    renderer = AuthRenderer(request)
+    logic = AuthServiceLogic(auth_service)
 
-        if error_response := check_rate_limit(auth_req, "register", 5):
-            return cast(HTMLResponse, error_response)
+    # 1. Rate Limit Check
+    if not auth_service.check_rate_limit(request, "register", 5):
+        return renderer.render_result("Too many registration attempts. Try again later.", success=False)
 
-        if error_response := validate_registration_data(auth_req):
-            return cast(HTMLResponse, error_response)
+    # 2. Execute Business Logic
+    result = logic.process_registration(email, password, confirm_password)
 
-        user = auth_service.get_user_by_email(auth_req.email)
-        return (
-            ResponseContext(
-                request,
-                ok=True,
-                message=f"Account created successfully for {user.username}!",
-            )
-            .add_login_link()
-            .build()
-        )
+    if not result.success:
+        return renderer.render_result(result.error, success=False)
 
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Registration failed for email %s", email)
-        return ResponseContext(
-            request,
-            ok=False,
-            message="Registration failed. Please try again.",
-        ).build()
+    # 3. Success Response
+    user = result.data
+    renderer.with_login_link()
+    return renderer.render_result(f"Account created successfully for {user.username}!", success=True)
 
 
 @router.post("/logout", response_class=HTMLResponse)
@@ -149,10 +114,7 @@ async def logout(
         user_models.AuthenticatedUser | None,
         Depends(user_models.optional_authenticated_user),
     ],
-    auth_service: Annotated[
-        user_models.AuthService,
-        Depends(user_models.get_auth_service),
-    ],
+    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
 ) -> Response:
     """Revoke session and clear cookies."""
     if current_user:
@@ -162,18 +124,17 @@ async def logout(
 
     is_hx = request.headers.get("HX-Request", "").lower() == "true"
 
-    resp_inner: Response = RedirectResponse(url="/", status_code=303)
     if is_hx:
-        resp_inner = (
-            ResponseContext(request, ok=True, message="Logged out successfully.")
-            .add_redirect("/")
-            .add_logout_flag()
-            .build()
-        )
+        renderer = AuthRenderer(request)
+        renderer.with_redirect("/")
+        renderer.with_logout_flag()
+        response = renderer.render_result("Logged out successfully.", success=True)
+    else:
+        response = RedirectResponse(url="/", status_code=303)
 
-    resp_inner.delete_cookie("session_token", path="/")
-    resp_inner.delete_cookie("access_token", path="/")
-    return resp_inner
+    response.delete_cookie("session_token", path="/")
+    response.delete_cookie("access_token", path="/")
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -196,9 +157,7 @@ async def google_login():
 @router.get("/github/callback")
 async def github_callback(
     request: Request,
-    auth_service: Annotated[
-        user_models.AuthService, Depends(user_models.get_auth_service)
-    ],
+    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
 ):
     """Handle GitHub return."""
     try:
@@ -212,9 +171,7 @@ async def github_callback(
 @router.get("/google/callback")
 async def google_callback(
     request: Request,
-    auth_service: Annotated[
-        user_models.AuthService, Depends(user_models.get_auth_service)
-    ],
+    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
 ):
     """Handle Google return."""
     try:
@@ -228,85 +185,43 @@ async def google_callback(
 async def process_sso_login(
     request: Request,
     auth_service: user_models.AuthService,
-    sso_user: OpenID,
+    sso_user,
     provider: str,
 ) -> RedirectResponse:
     """Common logic to find/create user and set session cookies."""
+    logic = AuthServiceLogic(auth_service)
 
-    # 1. Try to find user by Provider ID
-    user = None
-    if provider == "github":
-        user = auth_service.get_user_by_github_id(sso_user.id)
-    elif provider == "google":
-        user = auth_service.get_user_by_google_id(sso_user.id)
+    # 1. Process SSO user (find or create)
+    result = logic.process_sso_user(sso_user, provider)
 
-    # 2. If not found by ID, try Email (Account Linking)
-    if not user and sso_user.email:
-        user = auth_service.get_user_by_email(sso_user.email)
-        if user:
-            # Link the account
-            if provider == "github":
-                auth_service.update_user_oauth_info(user, github_id=sso_user.id)
-            elif provider == "google":
-                auth_service.update_user_oauth_info(user, google_id=sso_user.id)
+    if not result.success:
+        return RedirectResponse(url="/signin?error=oauth_failed", status_code=303)
 
-    # 3. If still no user, Create New
-    if not user:
-        base_name = sso_user.display_name or (
-            sso_user.email.split("@")[0] if sso_user.email else "user"
-        )
+    user = result.data
 
-        user = auth_service.create_oauth_user(
-            email=sso_user.email,
-            username=base_name,
-            github_id=sso_user.id if provider == "github" else None,
-            google_id=sso_user.id if provider == "google" else None,
-            display_name=sso_user.display_name,
-            avatar_url=sso_user.picture,
-        )
-
-    # 4. Create Session
-    auth_service.update_last_login(user)
-
-    session_expiry = timedelta(hours=24)
-    expires_at = datetime.now(UTC) + session_expiry
-    session_token = secrets.token_urlsafe(32)
-
-    auth_service.create_session(
-        user_id=user.id,
-        session_token=session_token,
-        expires_at=expires_at,
-        ip_address=request.client.host if request.client else None,
+    # 2. Generate Session
+    session_info = logic.generate_session_data(
+        user,
+        remember=True,
         user_agent=request.headers.get("user-agent"),
+        ip_address=request.client.host if request.client else None,
     )
 
-    token_data = {"user_id": str(user.id), "email": user.email}
-    jwt_token = create_access_token(token_data, auth_service.secret_key)
+    # 3. Build Response
+    response = RedirectResponse(url="/game", status_code=303)
+    response.delete_cookie("oauth_state")
 
-    # 5. Return Redirect
-    resp = RedirectResponse(url="/game", status_code=303)
-    resp.delete_cookie("oauth_state")
+    cookie_settings = {
+        "httponly": True,
+        "secure": session_info["secure"],
+        "samesite": "lax",
+        "path": "/",
+    }
 
-    resp.set_cookie(
-        "session_token",
-        session_token,
-        max_age=int(session_expiry.total_seconds()),
-        httponly=True,
-        secure=False,  # Set based on env in prod
-        samesite="lax",
-        path="/",
-    )
-    resp.set_cookie(
-        "access_token",
-        jwt_token,
-        max_age=1800,
-        httponly=True,
-        secure=False,
-        samesite="lax",
-        path="/",
-    )
+    response.set_cookie("session_token", session_info["session_token"], max_age=session_info["max_age"], **cookie_settings)
+    response.set_cookie("access_token", session_info["access_token"], max_age=1800, **cookie_settings)
 
-    return resp
+    return response
 
 
 # ---------------------------------------------------------------------------
@@ -323,10 +238,7 @@ async def get_current_user_info(
 ) -> UserInfo:
     """Return the current user."""
     if not current_user:
-        raise HTTPException(
-            status_code=401,
-            detail="Not authenticated",
-        )
+        raise HTTPException(status_code=401, detail="Not authenticated")
     return UserInfo(
         id=current_user.id,
         username=current_user.username,
@@ -341,29 +253,21 @@ async def get_current_user_info(
 async def refresh_token(
     request: Request,
     response: Response,
-    auth_service: Annotated[
-        user_models.AuthService,
-        Depends(user_models.get_auth_service),
-    ],
+    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
 ) -> TokenResponse:
     """Refresh the access token from a valid session."""
+    logic = AuthServiceLogic(auth_service)
+
     session_token = request.cookies.get("session_token")
     if not session_token:
         raise HTTPException(status_code=401, detail="No session found")
 
-    session = auth_service.get_session_by_token(session_token)
-    if not session:
-        raise HTTPException(status_code=401, detail="Invalid session")
+    result = logic.refresh_access_token(session_token)
 
-    user = auth_service.get_user_by_id(str(session.user_id))
-    if not user or not user.is_active:
-        raise HTTPException(status_code=401, detail="User not found or inactive")
+    if not result.success:
+        raise HTTPException(status_code=401, detail=result.error)
 
-    token_data = {"user_id": str(user.id), "email": user.email}
-    access_token = create_access_token(token_data, auth_service.secret_key)
-
-    session.last_activity = datetime.now(UTC)
-    auth_service.db.commit()
+    access_token = result.data
 
     response.set_cookie(
         "access_token",

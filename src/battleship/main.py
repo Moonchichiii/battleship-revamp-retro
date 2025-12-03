@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-import os
 from datetime import UTC, datetime
 from pathlib import Path
 
+from decouple import config as env_config
 from fastapi import FastAPI, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.gzip import GZipMiddleware
@@ -21,23 +21,27 @@ from src.battleship.api.routes import scores as scores_routes
 from src.battleship.api.routes.ai import router as ai_router
 from src.battleship.api.routes.auth import router as auth_router
 from src.battleship.api.routes.game import router as game_router
-
-# --- FIXED IMPORTS: Now pointing to src.battleship.* ---
+from src.battleship.core.config import (
+    APP_VERSION,
+    ENVIRONMENT,
+    GITHUB_OAUTH_ENABLED,
+    GOOGLE_OAUTH_ENABLED,
+    SECRET_KEY,
+)
 from src.battleship.core.database import TESTING, Base, engine
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Battleship Revamp")
 
-# --- IMPORTANT: Add Session Middleware for OAuth to work! ---
-# You need a secret key here. In production, load this from env.
-app.add_middleware(
-    SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "super-secret-dev-key")
-)
+# --- Sessions / cookies (OAuth, login, etc.) ---
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
 # Performance optimizations
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
-# --- FIXED PATHS: Pointing to src/battleship/web/ ---
+# --- Static & templates (src/battleship/web/...) ---
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "web" / "static"
 TEMPLATES_DIR = BASE_DIR / "web" / "templates"
@@ -51,26 +55,21 @@ if not TEMPLATES_DIR.exists():
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-# Cache-busting: bump APP_VERSION env var on each deploy to force fresh CSS/JS
-APP_VERSION = os.getenv("APP_VERSION", "dev")
+# Cache-busting + environment flags into templates
 templates.env.globals["STATIC_VERSION"] = APP_VERSION
+templates.env.globals["ENVIRONMENT"] = ENVIRONMENT
+templates.env.globals["GITHUB_OAUTH_ENABLED"] = GITHUB_OAUTH_ENABLED
+templates.env.globals["GOOGLE_OAUTH_ENABLED"] = GOOGLE_OAUTH_ENABLED
 
-# --- THE FIX STARTS HERE ---
-# We must explicitly tell the template engine that these variables exist.
-# Otherwise {% if GITHUB_CLIENT_ID %} is always False.
-templates.env.globals["GITHUB_CLIENT_ID"] = bool(os.getenv("GITHUB_CLIENT_ID"))
-templates.env.globals["GOOGLE_CLIENT_ID"] = bool(os.getenv("GOOGLE_CLIENT_ID"))
-# --- THE FIX ENDS HERE ---
-
-logger = logging.getLogger(__name__)
-
-# DB Config
-DB_AUTO_CREATE = os.getenv("DB_AUTO_CREATE", "0" if TESTING else "1") == "1"
+# DB Config (decouple instead of os.getenv)
+DB_AUTO_CREATE = (
+    env_config("DB_AUTO_CREATE", default="0" if TESTING else "1", cast=str) == "1"
+)
 
 
 @app.middleware("http")
 async def add_cache_headers(
-    request: Request, call_next: RequestResponseEndpoint
+    request: Request, call_next: RequestResponseEndpoint,
 ) -> Response:
     response = await call_next(request)
     if request.url.path.startswith("/static/"):
@@ -96,42 +95,42 @@ async def home_head() -> Response:
 @app.get("/", response_class=HTMLResponse, name="home")
 async def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "home.html", {"request": request, "active_tab": "home"}
+        "home.html", {"request": request, "active_tab": "home"},
     )
 
 
 @app.get("/game", response_class=HTMLResponse, name="game")
 async def game_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "game.html", {"request": request, "active_tab": "game"}
+        "game.html", {"request": request, "active_tab": "game"},
     )
 
 
 @app.get("/scores", response_class=HTMLResponse, name="scores")
 async def scores_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "scores.html", {"request": request, "active_tab": "scores"}
+        "scores.html", {"request": request, "active_tab": "scores"},
     )
 
 
 @app.get("/signin", response_class=HTMLResponse, name="signin")
 async def signin_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "signin.html", {"request": request, "active_tab": "signin"}
+        "signin.html", {"request": request, "active_tab": "signin"},
     )
 
 
 @app.get("/signup", response_class=HTMLResponse, name="signup")
 async def signup_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "signup.html", {"request": request, "active_tab": "signup"}
+        "signup.html", {"request": request, "active_tab": "signup"},
     )
 
 
 @app.get("/ai", response_class=HTMLResponse, name="ai_lobby")
 async def ai_lobby(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "ai.html", {"request": request, "active_tab": "ai"}
+        "ai.html", {"request": request, "active_tab": "ai"},
     )
 
 
@@ -149,5 +148,5 @@ async def init_db() -> None:
     try:
         await run_in_threadpool(Base.metadata.create_all, bind=engine)
         logger.info("Database tables ensured")
-    except Exception as e:
-        logger.error(f"DB Init Failed: {e}")
+    except Exception as e:  # pragma: no cover (safety logging)
+        logger.error("DB Init Failed: %s", e)

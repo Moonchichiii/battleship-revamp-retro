@@ -12,7 +12,8 @@ WORKDIR /wheels
 
 # Copy requirements and create wheels (include dependencies)
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+RUN pip install --upgrade pip \
+    && pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 # Production stage
 FROM python:3.12-slim AS production
@@ -33,7 +34,8 @@ WORKDIR /app
 # Python runtime tweaks
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=8000 \
+    ENVIRONMENT=production
 
 # Copy wheels from builder stage
 COPY --from=builder /wheels /wheels

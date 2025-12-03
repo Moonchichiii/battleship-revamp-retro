@@ -1,21 +1,31 @@
-{% if not request.headers.get("HX-Request") %}{% extends "base.html" %}{% endif
-%} {% block content %}
+{% if not request.headers.get("HX-Request") %}{% extends "base.html" %}{% endif %} 
+{% block content %}
 <div class="dashboard-grid">
-    <!-- Header Area (for Grid only, not the site header) -->
+    <!-- Header Area -->
     <div class="game-header">
         <h2>Tactical Interface</h2>
     </div>
 
-    <!-- Status Area – stays ABOVE board on mobile -->
+    <!-- Status Area -->
     <section class="game-status">
-        <h3>Mission Log</h3>
-        <div id="status" class="status-log">
-            {{ status_message | default("Awaiting orders. Select coordinates to
-            fire.") }}
+        <h3>Mission Control</h3>
+        
+        <div class="panel-controls">
+            <button id="sound-toggle" class="btn">
+                AUDIO: 🔇 OFF
+            </button>
+            <div class="timer-display">
+                T+ <span id="game-timer">00:00</span>
+            </div>
         </div>
+
+        <div id="status" class="status-log">
+            > {{ status_message | default("SYSTEM READY. Awaiting coordinates.") }}
+        </div>
+
         <div class="game-stats">
-            <span>Shots: <span id="shots-count">0</span></span>
-            <span>Hits: <span id="hits-count">0</span></span>
+            <span>SHOTS: <span id="shots-count">0</span></span>
+            <span>HITS: <span id="hits-count">0</span></span>
         </div>
     </section>
 
@@ -25,15 +35,11 @@
 
         <div class="game-legend">
             <div class="legend-item">
-                <span class="cell hit" style="width: 20px; height: 20px"
-                    >×</span
-                >
-                Hit
+                <span class="cell hit">×</span>
+                Target Destroyed
             </div>
             <div class="legend-item">
-                <span class="cell miss" style="width: 20px; height: 20px"
-                    >•</span
-                >
+                <span class="cell miss">•</span>
                 Miss
             </div>
         </div>
@@ -41,19 +47,19 @@
 
     <!-- Controls Area -->
     <section class="game-controls">
-        <h3>System Controls</h3>
+        <h3>System Operations</h3>
 
-        <p class="small-label">
-            Grid Resolution: <strong>8x8 (Standard)</strong>
-        </p>
+        <div class="resolution-label">
+            GRID RESOLUTION: <strong>8x8 STANDARD</strong>
+        </div>
 
         <div class="actions">
             <button class="btn" hx-post="/new" hx-target="#boardSection">
-                Initialize New Game
+                INIT NEW GAME
             </button>
 
             <button class="btn" hx-post="/reset" hx-target="#boardSection">
-                Reset Coords
+                RESET COORDS
             </button>
         </div>
     </section>

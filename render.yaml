@@ -23,15 +23,17 @@ services:
       - key: ENVIRONMENT
         value: production
 
-      # Keep behavior explicit & in sync with your code
+      # DB_AUTO_CREATE="1" will create tables if they don't exist. 
       - key: DB_AUTO_CREATE
         value: "1"
 
+      # SECURITY: Rate Limiting ON in production
       - key: DISABLE_RATE_LIMIT
-        value: "1"
+        value: "0"
 
+      # DATA INTEGRITY: Real email validation ON in production
       - key: EMAIL_SYNTAX_ONLY
-        value: "1"
+        value: "0"
 
 databases:
   - name: battleship-revamp-db

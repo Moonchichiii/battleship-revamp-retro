@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Annotated, Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, desc
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func, select
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -30,7 +30,10 @@ ROOT = Path(__file__).resolve().parents[3]
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
 
 
+# ---------------------------------------------------------------------------
 # Database Model
+# ---------------------------------------------------------------------------
+
 class Score(Base):
     """User game scores table."""
 
@@ -51,6 +54,14 @@ class Score(Base):
     shots_fired: Mapped[int] = mapped_column(Integer, nullable=False)
     accuracy: Mapped[float] = mapped_column(Float, nullable=False)
     board_size: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Stores 'rookie', 'veteran', 'psy-ops', etc.
+    difficulty: Mapped[str] = mapped_column(
+        String(20),
+        default='standard',
+        nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -61,12 +72,14 @@ class Score(Base):
     user: Mapped[User] = relationship("User", back_populates="scores")
 
 
-# Service Functions
+# ---------------------------------------------------------------------------
+# Service Functions (Optimized for SQLAlchemy 2.0)
+# ---------------------------------------------------------------------------
+
 class ScoreService:
     """Service for managing game scores."""
 
     def __init__(self, auth_service: AuthService) -> None:
-        """Initialize with auth service for database access."""
         self.auth_service = auth_service
         self.db = auth_service.db
 
@@ -77,6 +90,7 @@ class ScoreService:
         shots_fired: int,
         accuracy: float,
         board_size: int,
+        difficulty: str = "standard",
     ) -> Score:
         """Create a new score record."""
         score_record = Score(
@@ -85,28 +99,29 @@ class ScoreService:
             shots_fired=shots_fired,
             accuracy=accuracy,
             board_size=board_size,
+            difficulty=difficulty,
         )
         self.db.add(score_record)
         self.db.commit()
         self.db.refresh(score_record)
         return score_record
 
-    def get_top_scores(self, limit: int = 10) -> list[dict[str, Any]]:
-        """Get top scores with player names for template display."""
-        # Import User here to avoid circular imports
+    def get_top_scores(self, limit: int = 10, board_size: int = 8) -> list[dict[str, Any]]:
+        """Get top scores using Composite Index (board_size, score, shots)."""
+        # Import User inside method to avoid circular imports
         from src.battleship.users.models import User
 
-        # Query top scores with user information
-        results = (
-            self.db.query(Score, User)
+        stmt = (
+            select(Score, User)
             .join(User, Score.user_id == User.id)
             .filter(User.is_active == True)  # noqa: E712
-            .order_by(desc(Score.score))
+            .filter(Score.board_size == board_size)
+            .order_by(Score.score.desc(), Score.shots_fired.asc())
             .limit(limit)
-            .all()
         )
 
-        # Format for template
+        results = self.db.execute(stmt).all()
+
         scores = []
         for score_record, user in results:
             scores.append(
@@ -117,39 +132,66 @@ class ScoreService:
                     "shots_fired": score_record.shots_fired,
                     "accuracy": score_record.accuracy,
                     "board_size": score_record.board_size,
+                    "difficulty": score_record.difficulty,
                 },
             )
-
         return scores
 
     def get_user_scores(self, user_id: uuid.UUID, limit: int = 5) -> list[Score]:
         """Get a user's recent scores."""
-        return (
-            self.db.query(Score)
+        stmt = (
+            select(Score)
             .filter(Score.user_id == user_id)
-            .order_by(desc(Score.created_at))
+            .order_by(Score.created_at.desc())
             .limit(limit)
-            .all()
+        )
+        return list(self.db.execute(stmt).scalars().all())
+
+    def get_user_best_score(self, user_id: uuid.UUID, board_size: int = 8) -> Score | None:
+        """Get a user's absolute best score."""
+        stmt = (
+            select(Score)
+            .filter(Score.user_id == user_id)
+            .filter(Score.board_size == board_size)
+            .order_by(Score.score.desc(), Score.shots_fired.asc())
+            .limit(1)
+        )
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def get_user_rank(self, user_id: uuid.UUID, board_size: int = 8) -> int | None:
+        """Calculate user's rank using a Window function."""
+        # 1. Rank ALL scores for this board size
+        subq = (
+            select(
+                Score.user_id,
+                func.rank().over(
+                    order_by=[Score.score.desc(), Score.shots_fired.asc()]
+                ).label("rank")
+            )
+            .filter(Score.board_size == board_size)
+            .subquery()
         )
 
-    def get_user_best_score(self, user_id: uuid.UUID) -> Score | None:
-        """Get a user's best (highest) score."""
-        return (
-            self.db.query(Score)
-            .filter(Score.user_id == user_id)
-            .order_by(desc(Score.score))
-            .first()
+        # 2. Select rank for specific user
+        stmt = (
+            select(subq.c.rank)
+            .filter(subq.c.user_id == user_id)
+            .limit(1)
         )
+
+        return self.db.execute(stmt).scalar_one_or_none()
 
 
 def get_score_service(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> ScoreService:
-    """Get ScoreService instance dependency."""
     return ScoreService(auth_service)
 
 
-# Routes
+# ---------------------------------------------------------------------------
+# HTTP Routes
+# ---------------------------------------------------------------------------
+
 @router.get("/scores", response_class=HTMLResponse)
 async def scores_page(
     request: Request,
@@ -157,7 +199,7 @@ async def scores_page(
     score_service: Annotated[ScoreService, Depends(get_score_service)],
 ) -> HTMLResponse:
     """Display the scores page with top scores."""
-    top_scores = score_service.get_top_scores(limit=20)
+    top_scores = score_service.get_top_scores(limit=20, board_size=8)
 
     context = {
         "request": request,
@@ -165,7 +207,6 @@ async def scores_page(
         "scores": top_scores,
         "offset": 0,
     }
-
     return templates.TemplateResponse("scores.html", context)
 
 
@@ -174,27 +215,29 @@ async def api_top_scores(
     request: Request,
     score_service: Annotated[ScoreService, Depends(get_score_service)],
     limit: int = 10,
+    board_size: int = 8,
 ) -> HTMLResponse:
     """Fetch top scores table body for HTMX."""
-    top_scores = score_service.get_top_scores(limit=limit)
+    top_scores = score_service.get_top_scores(limit=limit, board_size=board_size)
 
     context = {
         "request": request,
         "scores": top_scores,
         "offset": 0,
     }
-
     return templates.TemplateResponse("_scores_tbody.html", context)
 
 
-# Utility function for game_routes.py to use
+# ---------------------------------------------------------------------------
+# Utility for game.py
+# ---------------------------------------------------------------------------
+
 def save_game_score(
     user_id: uuid.UUID,
     game_stats: dict[str, Any],
     score_service: ScoreService,
 ) -> Score:
     """Save a completed game score."""
-    # Calculate score (customize this algorithm as needed)
     base_score = 1000
     shot_penalty = game_stats["shots_fired"] * 10
     accuracy_bonus = int(game_stats["accuracy"] * 2)
@@ -202,10 +245,14 @@ def save_game_score(
 
     final_score = max(0, base_score - shot_penalty + accuracy_bonus + size_bonus)
 
+    # Extract difficulty from stats
+    difficulty = game_stats.get("difficulty", "standard")
+
     return score_service.create_score(
         user_id=user_id,
         score=final_score,
         shots_fired=game_stats["shots_fired"],
         accuracy=game_stats["accuracy"],
         board_size=game_stats["board_size"],
+        difficulty=difficulty,
     )

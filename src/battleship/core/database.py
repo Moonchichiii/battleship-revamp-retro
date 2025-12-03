@@ -50,6 +50,14 @@ class Base(DeclarativeBase):
     """Exported declarative base for ORM models."""
 
 
+# ---- Mode flags -------------------------------------------------------------
+
+TESTING: Final[bool] = config(
+    "PYTEST_CURRENT_TEST",
+    default=None,
+) is not None or config("TESTING", default=False, cast=bool)
+
+
 # ---- Helpers ----------------------------------------------------------------
 
 
@@ -148,13 +156,6 @@ def _get_database_url() -> str:
     # 3. Build from components
     return _build_postgres_url()
 
-
-# ---- Mode flags -------------------------------------------------------------
-
-TESTING: Final[bool] = config(
-    "PYTEST_CURRENT_TEST",
-    default=None,
-) is not None or config("TESTING", default=False, cast=bool)
 
 # ---- Database URL resolution ------------------------------------------------
 

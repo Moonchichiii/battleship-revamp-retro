@@ -1,388 +1,124 @@
-# Battleship Revamp 2025
+# Battleship Revamp: Retro Command
 
-[![CI](https://github.com/Moonchichiii/battleship-revamp-retro/workflows/CI/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/ci.yml)
+[![CI Status](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/ci.yml/badge.svg)](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/ci.yml)
+[![Security Check](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/security.yml/badge.svg)](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/security.yml)
+[![Python Version](https://img.shields.io/badge/python-3.12+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![Code Style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Deployment](https://img.shields.io/badge/Deploy-Render-black?logo=render&logoColor=white)](https://render.com)
 
-## Development Roadmap
+> *"Sometimes the real enemy is your own targeting system."*
 
-The complete project roadmap and development tracking can be found on the [Battleship Revamp 2025 GitHub Project Board](https://github.com/users/Moonchichiii/projects/43).
+A hyper-optimized, retro-styled Battleship game built for the modern web. Features a **CRT-terminal UI**, server-side state validation, advanced **AI opponents** (including LLM-powered "Psy-Ops"), and secure OAuth authentication.
 
-A complete architectural overhaul of a Python terminal game, transformed into a production-ready web application featuring intelligent AI opponents, modern web technologies, FastAPI backend, HTMX + Jinja2 UI, strict linting/typing, Dockerized runtime, and CI/CD with security gates.
+---
 
 ## Table of Contents
 
-1. [Project Overview](#1-project-overview)
-2. [Technical Architecture](#2-technical-architecture)
-3. [AI Implementation](#3-ai-implementation)
-4. [Features](#4-features)
-5. [Technology Stack](#5-technology-stack)
-6. [Development Setup](#6-development-setup)
-7. [Testing & Quality Assurance](#7-testing--quality-assurance)
-8. [CI/CD & Security](#8-cicd--security)
-9. [Deployment](#9-deployment)
-10. [Project Evolution](#10-project-evolution)
-11. [License](#11-license)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Local Development](#local-development)
+- [Deployment](#deployment)
+- [Code Quality](#code-quality)
+- [License](#license)
 
 ---
 
-## 1. Project Overview
+## Features
 
-### Current state (implemented)
+- **Tactical AI:** Challenge 3 tiers of algorithmic opponents (Rookie, Veteran, Admiral) plus a GPT-4 powered "Psy-Ops" tier.
+- **Retro UI:** Custom CRT shaders, glowing phosphorus text, and raw ASCII art.
+- **Sound Engine:** Procedural audio synthesis via Web Audio API (no heavy assets).
+- **Secure Auth:** OAuth (GitHub/Google) and local Argon2 hashing with secure session management.
+- **Leaderboards:** Optimized PostgreSQL composite indexes for instant ranking queries.
+- **Zero-Lag:** Powered by **FastAPI** and **HTMX** for SPA-like performance without the bundle size.
 
-- FastAPI app with HTMX/Jinja2 templates
-- Minimal in-memory game engine (random fleet placement, hits/misses, simple stats)
-- Dev hygiene: Black, Ruff, mypy, pre-commit (hooks enforced)
-- GitHub Actions: CI (lint+tests), **Security** (Trivy + Docker Scout), **Deploy** (Render) chained after Security
-
-### Planned
-
-- Real auth (OAuth/social logins), persistent users/scores
-- Smarter AI levels (beyond random)
-- PostgreSQL persistence & Redis cache
-
-### Brief Description
-
-Battleship Revamp 2025 represents a comprehensive transformation from a simple Python terminal script to a full-stack web application. The project demonstrates modern software engineering practices, AI algorithm implementation, and production-grade deployment strategies.
-
-Originally conceived as a basic terminal game in 2022 with random AI opponents and Google Sheets integration for score tracking, this iteration showcases advanced development methodologies including containerization, continuous integration, security scanning, and sophisticated AI decision-making algorithms.
-
-### Target Audience
-
-This project serves multiple constituencies:
-
-- **Gaming Enthusiasts**: Players seeking intelligent opponents with varying difficulty levels and strategic depth
-- **Developers**: Those interested in AI algorithm implementation, full-stack architecture, and modern deployment practices
-- **Technical Recruiters**: Demonstration of comprehensive software engineering skills across multiple domains
-- **Students**: Learning resource for game development, AI implementation, and web application architecture
+[Back to top](#table-of-contents)
 
 ---
 
-## 2. Technical Architecture
+## Tech Stack
 
-### System Design
+- **Core:** Python 3.12, FastAPI
+- **Frontend:** HTMX, Jinja2, CSS3 (No JS Frameworks)
+- **Database:** PostgreSQL 14+ (Async + Sync support)
+- **Security:** Argon2, OAuth2, Secure Cookies
+- **Deployment:** Docker, Render
+- **DevOps:** Ruff (Linting), Pytest, Pre-commit
 
-- **Backend API:** FastAPI + Starlette
-- **UI:** Jinja2 + HTMX (server-rendered with partials)
-- **State:** In-memory (per process) for now
-
-**Planned:**
-
-- **Authentication:** OAuth 2.0 (e.g., GitHub/Google)
-- **Database:** PostgreSQL (prod), SQLite (dev)
-- **Caching:** Redis (sessions/caching)
-
-### Performance considerations
-
-- In use: FastAPI's async request handling (non-blocking I/O)
-- *(Planned)* Redis caching for hot paths
-- *(Planned)* DB connection pooling and query tuning
-- *(Planned)* Optimized static asset delivery
+[Back to top](#table-of-contents)
 
 ---
 
-## 3. AI Implementation
+## Local Development
 
-The game will feature tiered AI difficulty levels, each using different algorithmic approaches:
-
-### Implemented now
-
-- **Rookie:** basic random/heuristic behavior, simple stats
-
-### Planned tiers
-
-- **Veteran:** probability heatmap targeting
-- **Admiral:** search/lookahead (e.g., heuristic-driven)
-
-Each AI level maintains distinct personality characteristics, ensuring varied gameplay experiences while providing appropriate challenge scaling.
-
----
-
-## 4. Features
-
-### Core Functionality
-
-#### Game Mechanics
-
-- Traditional Battleship gameplay with modern interface
-- Multiple ship types and placement strategies
-- Real-time game state updates
-- Turn-based interaction system
-
-#### AI Opponents
-
-- **Current:** Rookie only. **Planned:** add Veteran/Admiral tiers with smarter targeting.
-- *(Planned)* Adaptive behavior patterns
-- *(Planned)* Performance analytics and statistics
-- *(Planned)* Scalable difficulty progression
-
-#### User Experience
-
-- **Planned:** GitHub OAuth integration for seamless authentication
-- **Planned:** Persistent player profiles and statistics
-- **Planned:** Match history tracking and analysis
-- Responsive design supporting multiple device types
-
-#### Visual Design
-
-- Retro CRT terminal aesthetic with modern usability
-- ASCII graphics with contemporary UI elements
-- Customizable display options
-- Accessibility-focused design patterns
-
-### Technical Features
-
-#### Development Infrastructure
-
-- Comprehensive CI/CD pipeline implementation
-- Automated security scanning with Trivy and Docker Scout
-- Code quality enforcement with Black, Ruff, and Mypy
-- Performance testing integration with Locust
-
-#### Deployment & Operations
-
-- Docker containerization for consistent environments
-- Multi-environment configuration management
-- Automated deployment workflows
-- Health monitoring and logging systems
-
----
-
-## 5. Technology Stack
-
-| Area          | Tech                                 |
-|---------------|--------------------------------------|
-| Web framework | FastAPI (Starlette)                  |
-| Templating    | Jinja2 + HTMX                        |
-| Styling       | Custom CSS (`static/css/retro.css`)  |
-| Runtime       | Uvicorn (ASGI)                       |
-| Lint/Format   | Ruff, Black                          |
-| Typing        | mypy (strict)                        |
-| Tests         | pytest (+ pytest-asyncio)            |
-| Containers    | Docker (Buildx)                      |
-| CI/CD         | GitHub Actions (ci, security, deploy)|
-| Security      | Trivy (SARIF), Docker Scout          |
-
----
-
-## 6. Development Setup
-
-### Prerequisites
-
-- Python **3.12**
-- (Optional) Docker
-
-### Local Development
+### 1. Clone & Env
 
 ```bash
-git clone https://github.com/Moonchichiii/battleship-revamp-2025.git
-cd battleship-revamp-2025
+git clone https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME].git
+cd [REPO_NAME]
+cp .env.example .env
+```
 
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-# source venv/bin/activate
+### 2. Run with Docker (Recommended)
 
-pip install -r requirements.txt
+This spins up the App and PostgreSQL instantly.
+
+```bash
+docker-compose up --build
+```
+
+Access the tactical interface at: `http://localhost:8000`
+
+### 3. Run Manually
+
+If you prefer running without Docker:
+
+```bash
+# Install dependencies
 pip install -r requirements-dev.txt
 
-# Install git hooks
-pre-commit install
-
-# Run the dev server
-uvicorn main:app --reload
+# Run Postgres (ensure variables in .env match your local DB)
+# Then start server:
+uvicorn src.battleship.main:app --reload
 ```
 
-Visit [http://localhost:8000](http://localhost:8000)
+[Back to top](#table-of-contents)
 
-### Docker Development
+---
+
+## Deployment
+
+This project is configured for **Render.com** (Docker runtime).
+
+1. **New Web Service:** Select "Deploy from Git" → "Docker".
+2. **Environment Variables:** Add the variables required (referenced in `.env.example`).
+3. **Production Settings:**
+   - `DISABLE_RATE_LIMIT`: `0`
+   - `EMAIL_SYNTAX_ONLY`: `0`
+   - `DB_AUTO_CREATE`: `1` (First run only)
+4. **OAuth Redirects:** Update your GitHub/Google developer consoles to point to:
+   - `https://<YOUR-RENDER-URL>/auth/github/callback`
+
+[Back to top](#table-of-contents)
+
+---
+
+## Code Quality
+
+We strictly enforce code quality using **Ruff**.
 
 ```bash
-# Build and start all services
-docker compose up --build
+# Run linting
+ruff check .
+
+# Run tests
+pytest
 ```
 
-Visit [http://localhost:8000](http://localhost:8000)
-
-### Environment Variables
-
-Create a `.env` file with the following configuration. The core game runs without Postgres, but authentication and scores need a real database (Render provides `DATABASE_URL` when you add the managed Postgres add-on).
-
-```env
-# Database Configuration
-DATABASE_URL=postgresql://user:password@host:port/dbname
-REDIS_URL=redis://localhost:6379
-
-# GitHub OAuth
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-
-# Application Settings
-SECRET_KEY=your_secret_key
-DEBUG=False
-ALLOWED_HOSTS=localhost,127.0.0.1
-# Auto-create tables on startup (default off in tests, on in prod)
-DB_AUTO_CREATE=1
-```
+[Back to top](#table-of-contents)
 
 ---
 
-## 7. Testing & Quality Assurance
+## License
 
-```bash
-# Format
-black .
-
-# Lint (auto-fix)
-ruff check --fix .
-
-# Type check
-mypy .
-
-# Tests (with coverage)
-pytest -q --cov --cov-report=term-missing
-
-# Run all hooks on all files
-pre-commit run --all-files
-```
-
-### Testing Strategy
-
-The project implements comprehensive testing across multiple layers:
-
-#### Unit Testing
-
-```bash
-# Run all unit tests
-pytest tests/ -v
-
-# Run tests with coverage reporting
-pytest tests/ --cov=src/ --cov-report=html
-```
-
-#### Performance Testing
-
-```bash
-# Load testing with Locust
-locust -f tests/performance/locustfile.py --host=http://localhost:8000
-```
-
-### Security Testing
-
-Automated security scanning is integrated into the CI/CD pipeline:
-
-- **Trivy**: Container vulnerability scanning
-- **Docker Scout**: Dependency vulnerability assessment
-- **SAST**: *(planned)* Static application security testing
-
----
-
-## 8. CI/CD & Security
-
-### Workflows
-
-- **CI** (`.github/workflows/ci.yml`): Black, Ruff, mypy, pytest (+ coverage)
-- **Security** (`.github/workflows/security.yml`): build once → scan with **Trivy** (fail High/Critical + upload SARIF) and **Docker Scout** (fail High/Critical)
-- **Deploy** (`.github/workflows/deploy.yml`): triggers on `workflow_run` after **Security** succeeds for a push to `main`; builds & pushes image to Render and triggers deploy.
-
-### Recommended branch protection
-
-- Require checks from **CI** and **Security** before merging to `main`.
-
----
-
-## 9. Deployment
-
-### Production Deployment (Render)
-
-This repo is wired for Render’s Container Registry + managed Postgres.
-
-1) **Provision Postgres** in Render. Copy the provided `DATABASE_URL`.
-2) **Create Web Service** (Docker) that pulls from `registry.render.com/<SERVICE_ID>/battleship-revamp`. Keep the health check path `/health`.
-3) **Environment variables / secrets** (Render UI):
-   - `DATABASE_URL` (from step 1)
-   - `SECRET_KEY` (generate a random string)
-   - `ENVIRONMENT=production`
-   - `DB_AUTO_CREATE=1` (create SQLAlchemy tables at startup: users, user_sessions, scores)
-   - `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` (if enabling GitHub OAuth)
-4) **Deploy**: the GitHub Action `.github/workflows/deploy.yml` builds/pushes the image to Render on successful Security workflow. Render will auto-redeploy when the image tag updates.
-
-Run `scripts/init.sql` once against the Render Postgres instance (e.g., via psql or pgAdmin) to create the current tables (users, user_sessions, scores).
-
-Local smoke test against a real DB:
-
-```bash
-DATABASE_URL=postgresql+psycopg://user:pass@host:5432/db \
-DB_AUTO_CREATE=1 uvicorn main:app --host 0.0.0.0 --port 8000
-curl http://localhost:8000/health
-```
-
-### Monitoring & Observability
-
-Production deployments include:
-
-- Application performance monitoring
-- Error tracking and alerting
-- User analytics and engagement metrics
-- Infrastructure monitoring
-
----
-
-## 10. Project Evolution
-
-### Development Timeline
-
-| Phase              | Period   | Key Achievements                                      |
-|--------------------|----------|------------------------------------------------------|
-| **Initial Concept**| 2022     | Python terminal game with Google Sheets integration  |
-| **Architecture Planning** | Early 2025 | System design and technology selection |
-| **Core Development** | 2025 | Full-stack implementation with AI algorithms |
-| **Production Release** | 2025 | Deployed application with CI/CD pipeline |
-
-### Technical Achievements
-
-#### From Simple Script to Production Application
-
-- Transformed basic Python script into scalable web application
-- Implemented sophisticated AI algorithms for game intelligence
-- Established comprehensive development and deployment pipelines
-- Achieved production-ready quality with security and performance optimization
-
-#### Key Learning Outcomes
-
-- Full-stack web development with modern frameworks
-- AI algorithm implementation and optimization
-- DevOps practices and CI/CD pipeline creation
-- Security-first development approach
-- Performance optimization and scalability planning
-
-### Future Enhancements
-
-#### Planned Features
-
-- Multiplayer gameplay with real-time synchronization
-- Tournament system with ranking algorithms
-- Advanced AI customization options
-- Mobile application development
-- Analytics dashboard for gameplay insights
-
-#### Technical Improvements
-
-- Microservices architecture migration
-- Advanced caching strategies
-- Machine learning model optimization
-- Enhanced security features
-- Improved observability and monitoring
-
----
-
-## 11. License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-### Acknowledgments
-
-Special thanks to the open-source community for the foundational technologies that made this project possible, and to the Python and FastAPI communities for excellent documentation and support.
-
----
-
-**From Terminal Script to Production Application** - A demonstration of modern software engineering practices and comprehensive full-stack development capabilities.
+MIT License. Declassified for civilian use.

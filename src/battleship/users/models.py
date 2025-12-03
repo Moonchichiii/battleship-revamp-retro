@@ -13,6 +13,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
@@ -47,20 +48,16 @@ class User(Base):
         index=True,
     )
     email: Mapped[str] = mapped_column(
-        String(100),
+        String(255),
         unique=True,
         nullable=False,
         index=True,
     )
-    # Changed from Integer to String to be safe for both providers if needed,
-    # though usually GitHub is int and Google is big string.
-    # Casting int to string is safer long term.
     github_id: Mapped[str | None] = mapped_column(
         String(255),
         unique=True,
         index=True,
     )
-    # NEW: Google ID
     google_id: Mapped[str | None] = mapped_column(
         String(255),
         unique=True,
@@ -123,7 +120,7 @@ class UserSession(Base):
         nullable=False,
         index=True,
     )
-    ip_address: Mapped[str | None] = mapped_column(String(45))
+    ip_address: Mapped[str | None] = mapped_column(INET)
     user_agent: Mapped[str | None] = mapped_column(Text)
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

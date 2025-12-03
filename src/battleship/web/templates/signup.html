@@ -3,11 +3,11 @@
 <section id="signup" class="panel auth-panel is-active" role="tabpanel">
     <h2>New Registration</h2>
 
-    {% if GITHUB_CLIENT_ID or GOOGLE_CLIENT_ID %}
+    {% if GITHUB_OAUTH_ENABLED or GOOGLE_OAUTH_ENABLED %}
     <div class="oauth-section">
         <div class="oauth-buttons">
             <!-- GitHub Button -->
-            {% if GITHUB_CLIENT_ID %}
+            {% if GITHUB_OAUTH_ENABLED %}
             <a
                 href="/auth/github/login"
                 class="btn btn-github btn-full oauth-btn"
@@ -28,7 +28,7 @@
             {% endif %}
 
             <!-- Google Button -->
-            {% if GOOGLE_CLIENT_ID %}
+            {% if GOOGLE_OAUTH_ENABLED %}
             <a
                 href="/auth/google/login"
                 class="btn btn-google btn-full oauth-btn"

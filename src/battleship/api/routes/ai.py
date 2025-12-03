@@ -1,12 +1,6 @@
 """
 AI opponents (HTMX fragments), gated to authenticated users.
-
-Tiers (matching README):
-- rookie  : 6x6 board (easy)
-- veteran : 8x8 board (normal)
-- admiral : 10x10 board (hard)
-
-This module returns small HTML fragments directly so no new templates are needed.
+Includes Logic for Standard AI and LLM-based Psy-Ops.
 """
 
 from __future__ import annotations
@@ -14,13 +8,12 @@ from __future__ import annotations
 from html import escape
 from typing import Annotated, Any, Literal
 
+from decouple import config
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse
 
 from src.battleship.ai.strategies import create_ai
 from src.battleship.game.engine import Game
-
-# --- FIXED IMPORTS ---
 from src.battleship.users.models import require_authenticated_user
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -29,6 +22,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 _SESSIONS: dict[tuple[str, str], dict[str, Any]] = {}
 
 # Tiers -> board sizes
+# "psy-ops" is handled specially in the start_game logic
 TierName = Literal["rookie", "veteran", "admiral"]
 _TIERS: dict[str, int] = {"rookie": 6, "veteran": 8, "admiral": 10}
 
@@ -134,26 +128,47 @@ def _render_board(tier: str, player_game: Game, ai_game: Game, turn: str) -> str
 
 def _render_lobby(user: Any) -> str:  # noqa: ANN401
     """Render the tier selection lobby."""
+    # Standard buttons
+    buttons = "".join(
+        f"<button class='btn' hx-post='/ai/start' "
+        f'hx-vals=\'{{"tier":"{t}"}}\' '
+        f"hx-target='#main' hx-swap='innerHTML' hx-push-url='true'>"
+        f"{t.title()} ({size}x{size})</button>"
+        for t, size in _TIERS.items()
+    )
+
+    # LLM Button (Psy-Ops)
+    llm_button = (
+        "<button class='btn' "
+        "style='border-color: var(--phosphor-alert); color: var(--phosphor-alert);' "
+        "hx-post='/ai/start' hx-vals='{\"tier\":\"psy-ops\"}' "
+        "hx-target='#main' hx-swap='innerHTML' hx-push-url='true' "
+        "hx-indicator='#ai-loader'>"
+        "<span style='display: block; font-size: 1.5rem; margin-bottom: 0.5rem;'>☠</span>"
+        "PSY-OPS (LLM)"
+        "<div class='hint' style='margin-top: 0.5rem'>GPT-4 Powered</div>"
+        "</button>"
+    )
+
     return (
         "<section id='ai-lobby' class='panel is-active'>"
         "<h2>AI Opponents</h2>"
         "<p>Select a difficulty level:</p>"
-        "<div class='btn-row' style='display:flex;gap:.5rem;flex-wrap:wrap'>"
-        + "".join(
-            f"<button class='btn' hx-post='/ai/start' "
-            f'hx-vals=\'{{"tier":"{t}"}}\' '
-            f"hx-target='#main' hx-swap='innerHTML'>"
-            f"{t.title()} ({size}x{size})</button>"
-            for t, size in _TIERS.items()
-        )
-        + "</div>"
-        "<div style='margin-top:1rem;font-size:0.9rem;color:var(--g-text-soft)'>"
-        "<p><strong>Rookie:</strong> Random moves with basic hit follow-up</p>"
-        "<p><strong>Veteran:</strong> Uses checkerboard pattern and hunt mode</p>"
-        "<p><strong>Admiral:</strong> Advanced probability-based targeting</p>"
+        "<div class='actions' style='justify-content: center; gap: 1rem; flex-wrap: wrap;'>"
+        f"{buttons}"
+        f"{llm_button}"
         "</div>"
-        "<p style='margin-top:.75rem;color:var(--g-text-soft)'>"
-        f"Signed in as <strong>{escape(user.username)}</strong>."
+        "<div id='ai-loader' class='htmx-indicator' style='text-align:center; margin-top:1rem;'>"
+        "<span class='blink'>ESTABLISHING UPLINK WITH AI CORE...</span>"
+        "</div>"
+        "<div style='margin-top:1rem;font-size:0.9rem;color:var(--phosphor-dim)'>"
+        "<p><strong>Rookie:</strong> Random moves.</p>"
+        "<p><strong>Veteran:</strong> Checkerboard & Hunt patterns.</p>"
+        "<p><strong>Admiral:</strong> Probability targeting.</p>"
+        "<p><strong>Psy-Ops:</strong> LLM reasoning engine (Slow but tactical).</p>"
+        "</div>"
+        "<p style='margin-top:1.5rem; border-top: 1px dashed var(--phosphor-dim); padding-top: 0.5rem;'>"
+        f"LOGGED IN AS: <strong>{escape(user.username)}</strong>"
         "</p>"
         "</section>"
     )
@@ -218,19 +233,37 @@ def start_game(
     tier: Annotated[str, Form()],
     user: Annotated[Any, Depends(require_authenticated_user)],  # noqa: ANN401
 ) -> HTMLResponse:
-    """Create or reset a game for the given tier and return the board."""
+    """Create game. If tier is 'psy-ops', use LLM."""
     tier_norm = tier.strip().lower()
-    if tier_norm not in _TIERS:
+
+    # Determine Board Size
+    if tier_norm == "psy-ops":
+        # LLMs can be slow/expensive, keeping it 8x8 is a good balance
+        board_size = 8
+    elif tier_norm in _TIERS:
+        board_size = _TIERS[tier_norm]
+    else:
         raise HTTPException(status_code=404, detail="Unknown tier")
 
-    board_size = _TIERS[tier_norm]
+    # Initialize Games
+    player_game = Game.new(size=board_size)
+    ai_game = Game.new(size=board_size)
 
-    # Create two games: one for player shots, one for AI shots
-    player_game = Game.new(size=board_size)  # Player shooting at AI ships
-    ai_game = Game.new(size=board_size)  # AI shooting at player ships
+    # Initialize AI Opponent
+    if tier_norm == "psy-ops":
+        # Using python-decouple to get the key safely
+        api_key = config("OPENAI_API_KEY", default=None)
 
-    # Create AI opponent
-    ai_opponent = create_ai(tier_norm, player_game)
+        if not api_key:
+            # Fallback to Admiral if key is missing in .env
+            ai_opponent = create_ai("admiral", player_game)
+        else:
+            # Lazy import to avoid errors if logic resides elsewhere
+            from src.battleship.ai.opponent import LLMAIOpponent
+
+            ai_opponent = LLMAIOpponent(player_game, api_key=api_key)
+    else:
+        ai_opponent = create_ai(tier_norm, player_game)
 
     session_data = {
         "player_game": player_game,
@@ -297,5 +330,4 @@ def player_shot(
         else:
             session_data["turn"] = "player"
 
-    return HTMLResponse(_render_game_screen(tier_norm, session_data))
     return HTMLResponse(_render_game_screen(tier_norm, session_data))

@@ -3,7 +3,7 @@ endif %} {% block title %}Battleship Revamp — Home{% endblock %} {% block
 content %}
 <section id="home" class="home-grid">
     <!-- LEFT: Ship / hero art -->
-    <div class="home-ship">
+    <div class="home-ship panel">
         <h2 class="visually-hidden">Welcome to Battleship Revamp</h2>
 
         <pre class="ascii-art" aria-label="ASCII battleship silhouette">
@@ -49,24 +49,24 @@ content %}
     </div>
 
     <!-- RIGHT: Rules / messaging -->
-    <div class="home-copy">
+    <div class="home-copy panel">
         <h2>Deployment Briefing</h2>
 
         <p class="tagline">
-            Anyone can play endless skirmishes against themselves — but you must
-            register to challenge the <strong>AI Command Fleet</strong>.
+            You are cleared to engage in endless tactical skirmishes against the simulator. 
+            However, only registered commanders may challenge the <strong>AI Command Fleet</strong>.
         </p>
 
         <ul class="rules-list">
-            <li>Classic Battleship grid with modern targeting telemetry.</li>
-            <li>Play solo for warm-up runs and high-score hunting.</li>
-            <li>Sign in to unlock adaptive AI opponents (rookie → admiral).</li>
-            <li>No ads, no fluff — just pure tactical engagements.</li>
+            <li>Classic grid warfare with modern targeting telemetry.</li>
+            <li>Play solo for warm-up and high-score hunting.</li>
+            <li>Sign in to unlock adaptive AI (Rookie → Psy-Ops).</li>
+            <li>No ads, no fluff — just pure strategy.</li>
         </ul>
 
-        <p class="quote">
+        <div class="quote">
             “Sometimes the real enemy is your own targeting system.”
-        </p>
+        </div>
 
         <div class="home-cta">
             <button
@@ -75,17 +75,17 @@ content %}
                 hx-target="#main"
                 hx-push-url="true"
             >
-                Enter Training Simulator
+                TRAINING SIM
             </button>
 
             {% if not current_user %}
             <button
-                class="btn"
+                class="btn btn-outline-white"
                 hx-get="{{ url_for('signup') }}"
                 hx-target="#main"
                 hx-push-url="true"
             >
-                Register for AI Access
+                REGISTER PILOT
             </button>
             {% endif %}
         </div>
