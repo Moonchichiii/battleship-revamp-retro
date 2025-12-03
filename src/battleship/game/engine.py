@@ -5,7 +5,7 @@ Minimal Battleship engine.
 from __future__ import annotations
 
 import logging
-import random
+import secrets  # Changed from random to secrets for cryptographic security (S311)
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -101,14 +101,24 @@ class Game:
             attempts = 0
             max_attempts = 100
             while attempts < max_attempts:
-                horizontal = bool(random.getrandbits(1))
+                # Use secrets for cryptographically secure random choice
+                horizontal = secrets.choice([True, False])
+
                 if horizontal:
-                    x = random.randint(0, self.size - length)
-                    y = random.randint(0, self.size - 1)
+                    # secrets.randbelow(n) returns 0 to n-1
+                    # Range needed: 0 to self.size - length (inclusive)
+                    x_limit = self.size - length + 1
+                    y_limit = self.size
+
+                    x = secrets.randbelow(x_limit)
+                    y = secrets.randbelow(y_limit)
                     coords = {(x + i, y) for i in range(length)}
                 else:
-                    x = random.randint(0, self.size - 1)
-                    y = random.randint(0, self.size - length)
+                    x_limit = self.size
+                    y_limit = self.size - length + 1
+
+                    x = secrets.randbelow(x_limit)
+                    y = secrets.randbelow(y_limit)
                     coords = {(x, y + i) for i in range(length)}
 
                 if self._is_valid_placement(coords):

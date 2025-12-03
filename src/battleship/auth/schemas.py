@@ -45,5 +45,5 @@ class TokenResponse(BaseModel):
     """Bearer token response used by /auth/refresh (and any future token endpoints)."""
 
     access_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer" # noqa: S105
     expires_in: int = 1800
