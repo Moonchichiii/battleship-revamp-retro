@@ -8,20 +8,14 @@ packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.14"
-
-# Web framework
 fastapi = ">=0.111,<1.0"
 uvicorn = { extras = ["standard"], version = ">=0.30,<1.0" }
 httpx = ">=0.27,<0.28"
 jinja2 = ">=3.1,<4.0"
 python-multipart = ">=0.0.12,<0.1"
 fastapi-sso = ">=0.15.0"
-
-# Database
 psycopg = { version = ">=3.2,<4.0", extras = ["binary"] }
 sqlalchemy = ">=2.0,<3.0"
-
-# Security & Auth
 passlib = { extras = ["argon2"], version = ">=1.7,<2.0" }
 email-validator = ">=2.1,<3.0"
 python-jose = { extras = ["cryptography"], version = ">=3.3,<4.0" }
@@ -46,9 +40,12 @@ quote-style = "double"
 indent-style = "space"
 
 [tool.ruff.lint]
-# E/W (pycodestyle), F (Pyflakes), I (Isort), UP (Pyupgrade), B (Bugbear)
-select = ["E", "F", "I", "W", "UP", "B"]
-ignore = ["E501"] # Ignore line length violations (let formatter handle it)
+select = ["E", "F", "I", "W", "UP", "B", "S"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*" = ["S101"]
+"src/battleship/auth/schemas.py" = ["S105"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]

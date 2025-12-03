@@ -18,11 +18,8 @@ from src.battleship.users.models import require_authenticated_user
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
-# Game session storage: (user_id, tier) -> (Game, BattleshipAI, game_state)
 _SESSIONS: dict[tuple[str, str], dict[str, Any]] = {}
 
-# Tiers -> board sizes
-# "psy-ops" is handled specially in the start_game logic
 TierName = Literal["rookie", "veteran", "admiral"]
 _TIERS: dict[str, int] = {"rookie": 6, "veteran": 8, "admiral": 10}
 
@@ -96,7 +93,6 @@ def _render_board(tier: str, player_game: Game, ai_game: Game, turn: str) -> str
         rows.append("</tr>")
     rows.append("</table>")
 
-    # Add AI's view of your board
     rows.append("<h4 style='margin-top:1rem'>Your Fleet (AI's Target)</h4>")
     rows.append("<table class='grid' role='grid' aria-label='Your ships'>")
 
@@ -108,10 +104,10 @@ def _render_board(tier: str, player_game: Game, ai_game: Game, turn: str) -> str
             classes = ["cell", "readonly"]
 
             if cell["hit"]:
-                label = "💥"  # Your ship was hit
+                label = "💥"
                 classes.append("enemy-hit")
             elif cell["miss"]:
-                label = "○"  # AI missed
+                label = "○"
                 classes.append("enemy-miss")
 
             rows.append(
@@ -128,7 +124,6 @@ def _render_board(tier: str, player_game: Game, ai_game: Game, turn: str) -> str
 
 def _render_lobby(user: Any) -> str:  # noqa: ANN401
     """Render the tier selection lobby."""
-    # Standard buttons
     buttons = "".join(
         f"<button class='btn' hx-post='/ai/start' "
         f'hx-vals=\'{{"tier":"{t}"}}\' '
@@ -137,7 +132,6 @@ def _render_lobby(user: Any) -> str:  # noqa: ANN401
         for t, size in _TIERS.items()
     )
 
-    # LLM Button (Psy-Ops)
     llm_button = (
         "<button class='btn' "
         "style='border-color: var(--phosphor-alert); color: var(--phosphor-alert);' "
@@ -183,7 +177,6 @@ def _render_game_screen(tier: str, session_data: dict[str, Any]) -> str:
 
     title = f"AI: {tier.title()}"
 
-    # Check for game over
     player_won = player_game.ships.issubset(player_game.hits)
     ai_won = ai_game.ships.issubset(ai_game.hits)
 
@@ -236,29 +229,22 @@ def start_game(
     """Create game. If tier is 'psy-ops', use LLM."""
     tier_norm = tier.strip().lower()
 
-    # Determine Board Size
     if tier_norm == "psy-ops":
-        # LLMs can be slow/expensive, keeping it 8x8 is a good balance
         board_size = 8
     elif tier_norm in _TIERS:
         board_size = _TIERS[tier_norm]
     else:
         raise HTTPException(status_code=404, detail="Unknown tier")
 
-    # Initialize Games
     player_game = Game.new(size=board_size)
     ai_game = Game.new(size=board_size)
 
-    # Initialize AI Opponent
     if tier_norm == "psy-ops":
-        # Using python-decouple to get the key safely
         api_key = config("OPENAI_API_KEY", default=None)
 
         if not api_key:
-            # Fallback to Admiral if key is missing in .env
             ai_opponent = create_ai("admiral", player_game)
         else:
-            # Lazy import to avoid errors if logic resides elsewhere
             from src.battleship.ai.opponent import LLMAIOpponent
 
             ai_opponent = LLMAIOpponent(player_game, api_key=api_key)
@@ -269,7 +255,7 @@ def start_game(
         "player_game": player_game,
         "ai_game": ai_game,
         "ai_opponent": ai_opponent,
-        "turn": "player",  # Player goes first
+        "turn": "player",
         "last_ai_move": None,
     }
 
@@ -294,28 +280,21 @@ def player_shot(
     ai_game = session_data["ai_game"]
     ai_opponent = session_data["ai_opponent"]
 
-    # Check if it's player's turn
     if session_data["turn"] != "player":
         return HTMLResponse(_render_game_screen(tier_norm, session_data))
 
-    # Apply player's shot
     player_result = player_game.fire(x, y)
 
-    # Check if player won
     if player_result.get("won"):
         session_data["turn"] = "game_over"
         return HTMLResponse(_render_game_screen(tier_norm, session_data))
 
-    # Skip AI turn if it was a repeat shot
     if not player_result.get("repeat"):
-        # Now AI's turn
         session_data["turn"] = "ai"
 
-        # AI makes its move
         ai_move = ai_opponent.make_move()
         ai_result = ai_game.fire(ai_move.x, ai_move.y)
 
-        # Update AI's knowledge with keyword-only argument
         ai_opponent.update_game_state(
             ai_move.x,
             ai_move.y,
@@ -324,7 +303,6 @@ def player_shot(
 
         session_data["last_ai_move"] = ai_move
 
-        # Check if AI won
         if ai_result.get("won"):
             session_data["turn"] = "game_over"
         else:

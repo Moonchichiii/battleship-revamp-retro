@@ -64,7 +64,7 @@ class LLMAIOpponent(BattleshipAI):
         return f"""
 Current Battleship game state:
 - Board size: {self.game.size}x{self.game.size}
-- My previous moves: {self.previous_moves[-10:]}  # Last 10 moves
+- My previous moves: {self.previous_moves[-10:]}
 - My hits: {self.hits}
 - High priority targets: {self.hunt_targets}
 - Available moves: {len(available_moves)} remaining
@@ -148,9 +148,7 @@ Focus on logical ship placement patterns and hunting damaged ships.
 
 
 class AiOpponent:
-    """
-    Rule-based AI opponent with three difficulty tiers for HTMX flows.
-    """
+    """Rule-based AI opponent with three difficulty tiers for HTMX flows."""
 
     def __init__(self, game: Game) -> None:
         self.game = game

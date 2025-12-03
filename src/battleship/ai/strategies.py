@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from battleship.game.engine import Game
 
-# Constants for AI behavior tuning
 ROOKIE_HUNT_CHANCE = 0.3
 CHECKERBOARD_OFFSET = 2
 
@@ -28,7 +27,6 @@ class AIMove:
 class BattleshipAI(ABC):
     """Abstract base class for AI opponents."""
 
-    # Track accuracy as a float (may be computed as a float elsewhere)
     accuracy: float
 
     def __init__(self, game: Game) -> None:
@@ -68,7 +66,6 @@ class RookieAI(BattleshipAI):
 
     def make_move(self) -> AIMove:
         """Make a move using basic strategy with low hunt probability."""
-        # Low chance to use hunt targets if available
         if self.hunt_targets and random.random() < ROOKIE_HUNT_CHANCE:  # noqa: S311
             target = self.hunt_targets.pop(0)
             return AIMove(
@@ -78,7 +75,6 @@ class RookieAI(BattleshipAI):
                 reasoning="Following up on previous hit",
             )
 
-        # Otherwise random move
         available = [
             (x, y)
             for x in range(self.game.size)
@@ -87,7 +83,6 @@ class RookieAI(BattleshipAI):
         ]
 
         if not available:
-            # Fallback
             return AIMove(x=0, y=0, confidence=0.1, reasoning="No moves available")
 
         target = random.choice(available)  # noqa: S311
@@ -104,7 +99,6 @@ class VeteranAI(BattleshipAI):
 
     def make_move(self) -> AIMove:
         """Make a move using checkerboard pattern and aggressive hunting."""
-        # Always prioritize hunt targets
         if self.hunt_targets:
             target = self.hunt_targets.pop(0)
             return AIMove(
@@ -114,7 +108,6 @@ class VeteranAI(BattleshipAI):
                 reasoning="Hunting damaged ship",
             )
 
-        # Use checkerboard pattern for efficiency
         available = [
             (x, y)
             for x in range(self.game.size)
@@ -122,7 +115,6 @@ class VeteranAI(BattleshipAI):
             if (x, y) not in self.previous_moves
         ]
 
-        # Prefer checkerboard squares (ships need 2+ adjacent cells)
         checkerboard = [
             (x, y) for x, y in available if (x + y) % CHECKERBOARD_OFFSET == 0
         ]
@@ -157,16 +149,13 @@ class AdmiralAI(BattleshipAI):
         self.probability_map = [
             [1.0 for _ in range(game.size)] for _ in range(game.size)
         ]
-        self.ship_sizes = [5, 4, 3, 3, 2]  # Common ship sizes
+        self.ship_sizes = [5, 4, 3, 3, 2]
 
     def make_move(self) -> AIMove:
         """Make a move using advanced probability-based targeting."""
-        # Update probability map
         self._update_probabilities()
 
-        # Always prioritize hunt targets with probability weighting
         if self.hunt_targets:
-            # Sort hunt targets by probability
             self.hunt_targets.sort(
                 key=lambda pos: self.probability_map[pos[1]][pos[0]],
                 reverse=True,
@@ -179,7 +168,6 @@ class AdmiralAI(BattleshipAI):
                 reasoning="High-probability hunt target",
             )
 
-        # Find highest probability cell
         max_prob = 0.0
         best_targets = []
 
@@ -206,7 +194,6 @@ class AdmiralAI(BattleshipAI):
 
     def _update_probabilities(self) -> None:
         """Update probability map based on game state."""
-        # Reset probabilities
         for y in range(self.game.size):
             for x in range(self.game.size):
                 if (x, y) in self.previous_moves:
@@ -214,7 +201,6 @@ class AdmiralAI(BattleshipAI):
                 else:
                     self.probability_map[y][x] = 1.0
 
-        # Increase probabilities near hits
         for hx, hy in self.hits:
             for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
                 nx, ny = hx + dx, hy + dy
@@ -234,14 +220,12 @@ def create_ai(tier: str, game: Game, **kwargs: str) -> BattleshipAI:
         "admiral": AdmiralAI,
     }
 
-    # Check for LLM tier (requires api_key)
     if tier == "llm" and "api_key" in kwargs:
         try:
             from battleship.ai.opponent import LLMAIOpponent
 
             return LLMAIOpponent(game, kwargs["api_key"])
         except ImportError:
-            # Fallback to Admiral if LLM dependencies not available
             return AdmiralAI(game)
 
     ai_class = ai_classes.get(tier, RookieAI)

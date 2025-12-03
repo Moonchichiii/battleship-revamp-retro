@@ -1,33 +1,56 @@
-"""Tests for game engine (aligned with current Game implementation)."""
+"""Tests for game engine (Standard 8x8 Board)."""
 
 from __future__ import annotations
 
-from src.battleship.game.engine import DEFAULT_BOARD_SIZE, FLEET_CONFIGS, Game
+from src.battleship.game.engine import DEFAULT_BOARD_SIZE, Game
 
-MIN_BOARD_SIZE = 6
-MAX_BOARD_SIZE = 10
-MID_BOARD_SIZE = 8
+STANDARD_SIZE = 8
+
 
 class TestGame:
     def test_game_creation_defaults(self) -> None:
+        """Test default Game creation uses standard size."""
         game = Game()
         assert game.size == DEFAULT_BOARD_SIZE
+        assert game.size == STANDARD_SIZE
         assert len(game.ships) == 0
 
     def test_new_classmethod(self) -> None:
-        game = Game.new(size=MID_BOARD_SIZE)
-        assert game.size == MID_BOARD_SIZE
+        """Test Game.new creates a populated board."""
+        game = Game.new(size=STANDARD_SIZE)
+        assert game.size == STANDARD_SIZE
         assert len(game.ships) > 0
 
     def test_fire_hit(self) -> None:
-        game = Game(size=MID_BOARD_SIZE)
-        game.ships.add((2, 3))
-        result = game.fire(2, 3)
+        """Test firing a shot that hits a ship."""
+        game = Game(size=STANDARD_SIZE)
+        test_coord = (2, 3)
+        game.ships.add(test_coord)
+
+        result = game.fire(*test_coord)
+
         assert result["hit"] is True
-        assert (2, 3) in game.hits
+        assert test_coord in game.hits
+        assert test_coord not in game.misses
 
     def test_fire_miss(self) -> None:
-        game = Game(size=MID_BOARD_SIZE)
-        result = game.fire(0, 0)
+        """Test firing a shot into empty water."""
+        game = Game(size=STANDARD_SIZE)
+        test_coord = (0, 0)
+        game.ships.discard(test_coord)
+
+        result = game.fire(*test_coord)
+
         assert result["hit"] is False
-        assert (0, 0) in game.misses
+        assert test_coord in game.misses
+        assert test_coord not in game.hits
+
+    def test_fire_repeat(self) -> None:
+        """Test firing at the same coordinate twice."""
+        game = Game(size=STANDARD_SIZE)
+        test_coord = (4, 4)
+
+        game.fire(*test_coord)
+        result = game.fire(*test_coord)
+
+        assert result.get("repeat") is True

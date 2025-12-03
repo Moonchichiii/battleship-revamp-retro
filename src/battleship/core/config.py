@@ -26,7 +26,7 @@ GITHUB_CLIENT_SECRET: Final[str | None] = _optional_str("GITHUB_CLIENT_SECRET")
 GOOGLE_CLIENT_ID: Final[str | None] = _optional_str("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET: Final[str | None] = _optional_str("GOOGLE_CLIENT_SECRET")
 
-# Convenience flags: only true if both ID and SECRET exist
+# --- OAuth Enabled Flags ---
 GITHUB_OAUTH_ENABLED: Final[bool] = bool(
     GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
 )

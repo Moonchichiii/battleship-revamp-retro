@@ -18,10 +18,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# ---------------------------------------------------------------------------
-# Local auth: login / register / logout
-# ---------------------------------------------------------------------------
-
 
 @router.post("/login", response_class=HTMLResponse)
 def login(
@@ -35,17 +31,14 @@ def login(
     renderer = AuthRenderer(request)
     logic = AuthServiceLogic(auth_service)
 
-    # 1. Rate Limit Check
     if not auth_service.check_rate_limit(request, "login", 10):
         return renderer.render_result("Too many login attempts. Try again later.", success=False)
 
-    # 2. Execute Business Logic
     result = logic.process_login(email, password)
 
     if not result.success:
         return renderer.render_result(result.error, success=False)
 
-    # 3. Success Handling - Generate Tokens
     user = result.data
     remember = str(remember_raw or "").lower() in {"1", "true", "on", "yes"}
 
@@ -56,7 +49,6 @@ def login(
         request.client.host if request.client else None,
     )
 
-    # 4. Build Response
     is_hx = request.headers.get("HX-Request", "").lower() == "true"
     if is_hx:
         renderer.with_redirect("/game")
@@ -65,7 +57,6 @@ def login(
     else:
         response = RedirectResponse(url="/game", status_code=303)
 
-    # 5. Set Cookies
     cookie_settings = {
         "httponly": True,
         "secure": session_info["secure"],
@@ -91,17 +82,14 @@ async def register(
     renderer = AuthRenderer(request)
     logic = AuthServiceLogic(auth_service)
 
-    # 1. Rate Limit Check
     if not auth_service.check_rate_limit(request, "register", 5):
         return renderer.render_result("Too many registration attempts. Try again later.", success=False)
 
-    # 2. Execute Business Logic
     result = logic.process_registration(email, password, confirm_password)
 
     if not result.success:
         return renderer.render_result(result.error, success=False)
 
-    # 3. Success Response
     user = result.data
     renderer.with_login_link()
     return renderer.render_result(f"Account created successfully for {user.username}!", success=True)
@@ -135,11 +123,6 @@ async def logout(
     response.delete_cookie("session_token", path="/")
     response.delete_cookie("access_token", path="/")
     return response
-
-
-# ---------------------------------------------------------------------------
-# OAuth Logic (Unified)
-# ---------------------------------------------------------------------------
 
 
 @router.get("/github/login")
@@ -191,7 +174,6 @@ async def process_sso_login(
     """Common logic to find/create user and set session cookies."""
     logic = AuthServiceLogic(auth_service)
 
-    # 1. Process SSO user (find or create)
     result = logic.process_sso_user(sso_user, provider)
 
     if not result.success:
@@ -199,7 +181,6 @@ async def process_sso_login(
 
     user = result.data
 
-    # 2. Generate Session
     session_info = logic.generate_session_data(
         user,
         remember=True,
@@ -207,7 +188,6 @@ async def process_sso_login(
         ip_address=request.client.host if request.client else None,
     )
 
-    # 3. Build Response
     response = RedirectResponse(url="/game", status_code=303)
     response.delete_cookie("oauth_state")
 
@@ -222,11 +202,6 @@ async def process_sso_login(
     response.set_cookie("access_token", session_info["access_token"], max_age=1800, **cookie_settings)
 
     return response
-
-
-# ---------------------------------------------------------------------------
-# Small JSON endpoints
-# ---------------------------------------------------------------------------
 
 
 @router.get("/me", response_model=UserInfo, response_model_exclude_none=True)

@@ -30,20 +30,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-# --- Pure Logic Helpers ---
-
 def validate_email_format(email_str: str) -> ServiceResult[str]:
     """Validate email format and return normalized email."""
     e = email_str.strip().lower()
 
-    # Check Dev/Test flags
     is_strict = not (
         config("EMAIL_SYNTAX_ONLY", default=False, cast=bool)
         or config("TESTING", default=False, cast=bool)
     )
 
     if not is_strict:
-        # Simple Regex fallback
         if re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", e):
             return ServiceResult.ok(e)
         return ServiceResult.fail("Invalid email format")
@@ -58,8 +54,6 @@ def validate_email_format(email_str: str) -> ServiceResult[str]:
         return ServiceResult.fail("Invalid email format")
 
 
-# --- Service Class ---
-
 class AuthServiceLogic:
     """Encapsulates Auth logic to keep Routers clean."""
 
@@ -68,17 +62,13 @@ class AuthServiceLogic:
 
     def process_login(self, email: str, password: str) -> ServiceResult[user_models.User]:
         """Process login and return user on success."""
-        # 1. Validate Input
         email_result = validate_email_format(email)
         if not email_result.success:
             return ServiceResult.fail(email_result.error)
 
         valid_email = email_result.data
-
-        # 2. Check Database
         user = self.db_service.get_user_by_email(valid_email)
 
-        # 3. Security Check (Timing Attack Resistant logic)
         if not user or not user.is_active or not user.password_hash:
             return ServiceResult.fail("Invalid email or password.")
 
@@ -91,7 +81,6 @@ class AuthServiceLogic:
         self, email: str, password: str, confirm: str
     ) -> ServiceResult[user_models.User]:
         """Process registration and return new user on success."""
-        # 1. Basic Checks
         email_result = validate_email_format(email)
         if not email_result.success:
             return ServiceResult.fail(email_result.error)
@@ -99,16 +88,13 @@ class AuthServiceLogic:
         if password != confirm:
             return ServiceResult.fail("Passwords do not match.")
 
-        # 2. Complexity Check
         is_strong, errors = validate_password_strength(password)
         if not is_strong:
             return ServiceResult.fail(" ".join(errors))
 
-        # 3. Uniqueness Check
         if self.db_service.get_user_by_email(email_result.data):
             return ServiceResult.fail("Email already registered.")
 
-        # 4. Create
         password_hash = hash_password(password)
         user = self.db_service.create_user(email_result.data, password_hash)
 

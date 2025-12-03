@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+
+from src.battleship.main import app
 
 if TYPE_CHECKING:
-    from src.battleship.users.models import AuthenticatedUser
+    pass
 
 HTTP_OK = 200
 HTTP_NOT_FOUND = 404

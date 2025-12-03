@@ -30,10 +30,6 @@ ROOT = Path(__file__).resolve().parents[3]
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
 
 
-# ---------------------------------------------------------------------------
-# Database Model
-# ---------------------------------------------------------------------------
-
 class Score(Base):
     """User game scores table."""
 
@@ -54,27 +50,19 @@ class Score(Base):
     shots_fired: Mapped[int] = mapped_column(Integer, nullable=False)
     accuracy: Mapped[float] = mapped_column(Float, nullable=False)
     board_size: Mapped[int] = mapped_column(Integer, nullable=False)
-
-    # Stores 'rookie', 'veteran', 'psy-ops', etc.
     difficulty: Mapped[str] = mapped_column(
         String(20),
         default='standard',
         nullable=True
     )
-
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
-    # Relationship back to User
     user: Mapped[User] = relationship("User", back_populates="scores")
 
-
-# ---------------------------------------------------------------------------
-# Service Functions (Optimized for SQLAlchemy 2.0)
-# ---------------------------------------------------------------------------
 
 class ScoreService:
     """Service for managing game scores."""
@@ -107,8 +95,7 @@ class ScoreService:
         return score_record
 
     def get_top_scores(self, limit: int = 10, board_size: int = 8) -> list[dict[str, Any]]:
-        """Get top scores using Composite Index (board_size, score, shots)."""
-        # Import User inside method to avoid circular imports
+        """Get top scores using composite index (board_size, score, shots)."""
         from src.battleship.users.models import User
 
         stmt = (
@@ -159,8 +146,7 @@ class ScoreService:
         return self.db.execute(stmt).scalar_one_or_none()
 
     def get_user_rank(self, user_id: uuid.UUID, board_size: int = 8) -> int | None:
-        """Calculate user's rank using a Window function."""
-        # 1. Rank ALL scores for this board size
+        """Calculate user's rank using a window function."""
         subq = (
             select(
                 Score.user_id,
@@ -172,7 +158,6 @@ class ScoreService:
             .subquery()
         )
 
-        # 2. Select rank for specific user
         stmt = (
             select(subq.c.rank)
             .filter(subq.c.user_id == user_id)
@@ -187,10 +172,6 @@ def get_score_service(
 ) -> ScoreService:
     return ScoreService(auth_service)
 
-
-# ---------------------------------------------------------------------------
-# HTTP Routes
-# ---------------------------------------------------------------------------
 
 @router.get("/scores", response_class=HTMLResponse)
 async def scores_page(
@@ -228,10 +209,6 @@ async def api_top_scores(
     return templates.TemplateResponse("_scores_tbody.html", context)
 
 
-# ---------------------------------------------------------------------------
-# Utility for game.py
-# ---------------------------------------------------------------------------
-
 def save_game_score(
     user_id: uuid.UUID,
     game_stats: dict[str, Any],
@@ -244,8 +221,6 @@ def save_game_score(
     size_bonus = game_stats["board_size"] * 5
 
     final_score = max(0, base_score - shot_penalty + accuracy_bonus + size_bonus)
-
-    # Extract difficulty from stats
     difficulty = game_stats.get("difficulty", "standard")
 
     return score_service.create_score(

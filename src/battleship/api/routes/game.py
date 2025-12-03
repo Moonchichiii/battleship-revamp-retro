@@ -29,16 +29,14 @@ router = APIRouter()
 BASE_DIR = Path(__file__).resolve().parents[2]
 templates = Jinja2Templates(directory=str(BASE_DIR / "web" / "templates"))
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
 STANDARD_BOARD_SIZE = DEFAULT_BOARD_SIZE
+
 
 class AITier(Enum):
     ROOKIE = "rookie"
     VETERAN = "veteran"
     ADMIRAL = "admiral"
+
 
 AI_DIFFICULTY_MAP = {
     AITier.ROOKIE: "novice",
@@ -46,9 +44,6 @@ AI_DIFFICULTY_MAP = {
     AITier.ADMIRAL: "expert",
 }
 
-# ---------------------------------------------------------------------------
-# Session state
-# ---------------------------------------------------------------------------
 
 @dataclass
 class SessionState:
@@ -69,11 +64,14 @@ class SessionState:
     def ai_won(self) -> bool:
         return self.ai_target.ships.issubset(self.ai_target.hits)
 
+
 _SESSIONS: dict[str, SessionState] = {}
+
 
 def _session_key(user: AuthenticatedUser | None, ai_tier: str) -> str:
     user_part = user.id if user else "guest"
     return f"{user_part}|{ai_tier}"
+
 
 def _new_session() -> SessionState:
     return SessionState(
@@ -81,11 +79,13 @@ def _new_session() -> SessionState:
         ai_target=Game.new(size=STANDARD_BOARD_SIZE),
     )
 
+
 def get_user_session(user: AuthenticatedUser | None, ai_tier: str) -> SessionState:
     key = _session_key(user, ai_tier)
     if key not in _SESSIONS:
         _SESSIONS[key] = _new_session()
     return _SESSIONS[key]
+
 
 def reset_user_session(user: AuthenticatedUser | None, ai_tier: str) -> SessionState:
     key = _session_key(user, ai_tier)
@@ -93,15 +93,12 @@ def reset_user_session(user: AuthenticatedUser | None, ai_tier: str) -> SessionS
     _SESSIONS[key] = session
     return session
 
-# ---------------------------------------------------------------------------
-# Score saving helper (UPDATED to handle Difficulty)
-# ---------------------------------------------------------------------------
 
 async def save_user_score(
     user: AuthenticatedUser,
     game: Game,
     auth_service: AuthService,
-    ai_tier: str, # Added ai_tier param
+    ai_tier: str,
 ) -> None:
     """Persist a finished game's score."""
     try:
@@ -111,7 +108,6 @@ async def save_user_score(
         if not stats["game_over"]:
             return
 
-        # Inject difficulty into stats so scores.py can read it
         stats["difficulty"] = ai_tier
 
         score_service = ScoreService(auth_service)
@@ -129,9 +125,6 @@ async def save_user_score(
     except Exception:
         logger.exception("Failed to save score for %s", user.username)
 
-# ---------------------------------------------------------------------------
-# Core turn logic
-# ---------------------------------------------------------------------------
 
 async def _take_turn(
     *,
@@ -147,18 +140,15 @@ async def _take_turn(
     player_board = session.player_target
     ai_board = session.ai_target
 
-    # Render if game over
     if session.player_won or session.ai_won:
         return _render_board_response(request, session, current_user, ai_level)
 
-    # Basic bounds check
     if not (0 <= x < player_board.size and 0 <= y < player_board.size):
         session.append_log("Invalid coordinates.")
         return _render_board_response(request, session, current_user, ai_level)
 
     messages: list[str] = []
 
-    # 1. Player fires
     result = player_board.fire(x, y)
 
     if result.get("repeat"):
@@ -170,12 +160,10 @@ async def _take_turn(
         if result.get("won"):
             messages.append("VICTORY! Enemy fleet eliminated.")
             if current_user:
-                # Pass AI Tier here
                 await save_user_score(current_user, player_board, auth_service, ai_level.value)
     else:
         messages.append(f"MISS at ({x + 1}, {y + 1}).")
 
-    # 2. AI fires back (if player hasn't won)
     if not result.get("won"):
         difficulty_label = AI_DIFFICULTY_MAP.get(ai_level, "novice")
         ai_move_x, ai_move_y = AiOpponent(ai_board).get_best_move(difficulty_label)
@@ -189,8 +177,9 @@ async def _take_turn(
     session.append_log(" ".join(messages))
     return _render_board_response(request, session, current_user, ai_level)
 
+
 def _render_board_response(request, session, current_user, ai_level):
-    """Helper to render the board template to avoid code duplication."""
+    """Render the board template."""
     context = {
         "board": session.player_target,
         "current_user": current_user,
@@ -202,9 +191,6 @@ def _render_board_response(request, session, current_user, ai_level):
     }
     return templates.TemplateResponse("_board.html", context)
 
-# ---------------------------------------------------------------------------
-# HTMX endpoints
-# ---------------------------------------------------------------------------
 
 @router.post("/new", response_class=HTMLResponse)
 async def new_game(
@@ -223,6 +209,7 @@ async def new_game(
 
     return _render_board_response(request, session, current_user, ai_level)
 
+
 @router.post("/reset", response_class=HTMLResponse)
 async def reset_game(
     request: Request,
@@ -230,6 +217,7 @@ async def reset_game(
     ai_tier: Annotated[str, Form()] = "rookie",
 ) -> HTMLResponse:
     return await new_game(request, current_user, ai_tier)
+
 
 @router.post("/make-move", response_class=HTMLResponse)
 async def make_move(

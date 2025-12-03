@@ -17,7 +17,6 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
-# --- Local Imports ---
 from src.battleship.core.database import TESTING, Base, get_db
 from src.battleship.core.security import verify_token
 
@@ -25,10 +24,6 @@ if TYPE_CHECKING:
     from src.battleship.api.routes.scores import Score
 
 security = HTTPBearer(auto_error=False)
-
-# -------------------------
-# ORM models (SQLAlchemy 2.0 typed)
-# -------------------------
 
 
 class User(Base):
@@ -138,11 +133,6 @@ class UserSession(Base):
     user: Mapped[User] = relationship(back_populates="sessions")
 
 
-# -------------------------
-# Pydantic models
-# -------------------------
-
-
 class UserResponse(BaseModel):
     """Public user fields."""
 
@@ -172,10 +162,6 @@ class AuthenticatedUser(BaseModel):
     permissions: list[str] = Field(default_factory=list)
 
 
-# -------------------------
-# Service + deps
-# -------------------------
-
 _rate_limit_store: dict[str, list[float]] = {}
 
 
@@ -183,16 +169,13 @@ class AuthService:
     """User, session, and rate-limit helpers."""
 
     def __init__(self, db: Session, secret_key: str) -> None:
-        """Initialize the AuthService."""
         self.db = db
         self.secret_key = secret_key
 
     def get_user_by_email(self, email: str) -> User | None:
-        """Get a user by email (case-insensitive)."""
         return self.db.query(User).filter(User.email == email.lower()).first()
 
     def get_user_by_id(self, user_id: str) -> User | None:
-        """Get a user by UUID string."""
         try:
             user_uuid = uuid.UUID(user_id)
         except ValueError:
@@ -200,15 +183,12 @@ class AuthService:
         return self.db.query(User).filter(User.id == user_uuid).first()
 
     def get_user_by_username(self, username: str) -> User | None:
-        """Get a user by username."""
         return self.db.query(User).filter(User.username == username).first()
 
     def get_user_by_github_id(self, github_id: str) -> User | None:
-        """Get a user by GitHub ID."""
         return self.db.query(User).filter(User.github_id == str(github_id)).first()
 
     def get_user_by_google_id(self, google_id: str) -> User | None:
-        """Get a user by Google ID."""
         return self.db.query(User).filter(User.google_id == str(google_id)).first()
 
     def create_user(
@@ -217,7 +197,6 @@ class AuthService:
         password_hash: str,
         username: str | None = None,
     ) -> User:
-        """Create a normal (email/password) user."""
         if not username:
             local_part = email.split("@")[0]
             username = local_part.split("+")[0] if "+" in local_part else local_part
@@ -249,7 +228,6 @@ class AuthService:
         display_name: str | None = None,
         avatar_url: str | None = None,
     ) -> User:
-        """Create a user from OAuth info."""
         base = username
         i = 1
         while self.get_user_by_username(username):
@@ -280,7 +258,6 @@ class AuthService:
         display_name: str | None = None,
         avatar_url: str | None = None,
     ) -> User:
-        """Update a user's OAuth metadata."""
         if github_id and not user.github_id:
             user.github_id = str(github_id)
         if google_id and not user.google_id:
@@ -298,7 +275,6 @@ class AuthService:
         return user
 
     def update_last_login(self, user: User) -> None:
-        """Set last_login/updated_at for a user."""
         user.last_login = datetime.now(UTC)
         user.updated_at = datetime.now(UTC)
         self.db.commit()
@@ -311,7 +287,6 @@ class AuthService:
         ip_address: str | None = None,
         user_agent: str | None = None,
     ) -> UserSession:
-        """Create a user session record."""
         session = UserSession(
             user_id=user_id,
             session_token=session_token,
@@ -325,7 +300,6 @@ class AuthService:
         return session
 
     def get_session_by_token(self, token: str) -> UserSession | None:
-        """Lookup an active session by token."""
         return (
             self.db.query(UserSession)
             .filter(
@@ -336,12 +310,9 @@ class AuthService:
         )
 
     def revoke_session(self, token: str) -> bool:
-        """Revoke a single session by token."""
         session = (
             self.db.query(UserSession)
-            .filter(
-                UserSession.session_token == token,
-            )
+            .filter(UserSession.session_token == token)
             .first()
         )
         if session:
@@ -351,7 +322,6 @@ class AuthService:
         return False
 
     def revoke_all_user_sessions(self, user_id: uuid.UUID) -> int:
-        """Revoke all sessions for a user and return how many were removed."""
         q = self.db.query(UserSession).filter(UserSession.user_id == user_id)
         count = q.count()
         q.delete()
@@ -359,7 +329,6 @@ class AuthService:
         return count
 
     def cleanup_expired_sessions(self) -> int:
-        """Remove expired sessions and return how many were removed."""
         q = self.db.query(UserSession).filter(
             UserSession.expires_at <= datetime.now(UTC),
         )
@@ -375,7 +344,6 @@ class AuthService:
         limit: int,
         window: int = 60,
     ) -> bool:
-        """Implement a simple IP-based in-memory rate limiter."""
         if TESTING or os.getenv("DISABLE_RATE_LIMIT") == "1":
             return True
 

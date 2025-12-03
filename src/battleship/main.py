@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import AsyncGenerator
 
 from decouple import config as env_config
 from fastapi import FastAPI, Request, Response
@@ -32,21 +34,33 @@ from src.battleship.core.database import TESTING, Base, engine
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Battleship Revamp")
+DB_AUTO_CREATE = (
+    env_config("DB_AUTO_CREATE", default="0" if TESTING else "1", cast=str) == "1"
+)
 
-# --- Sessions / cookies (OAuth, login, etc.) ---
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    """Handle startup and shutdown logic."""
+    if DB_AUTO_CREATE:
+        try:
+            await run_in_threadpool(Base.metadata.create_all, bind=engine)
+            logger.info("Database tables ensured")
+        except Exception as e:
+            logger.error("DB Init Failed: %s", e)
+    yield
+
+
+app = FastAPI(title="Battleship Revamp", lifespan=lifespan)
+
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
-
-# Performance optimizations
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])
 
-# --- Static & templates (src/battleship/web/...) ---
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "web" / "static"
 TEMPLATES_DIR = BASE_DIR / "web" / "templates"
 
-# Ensure directories exist to prevent startup crashes
 if not STATIC_DIR.exists():
     print(f"WARNING: Static dir not found at {STATIC_DIR}")
 if not TEMPLATES_DIR.exists():
@@ -55,16 +69,10 @@ if not TEMPLATES_DIR.exists():
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-# Cache-busting + environment flags into templates
 templates.env.globals["STATIC_VERSION"] = APP_VERSION
 templates.env.globals["ENVIRONMENT"] = ENVIRONMENT
 templates.env.globals["GITHUB_OAUTH_ENABLED"] = GITHUB_OAUTH_ENABLED
 templates.env.globals["GOOGLE_OAUTH_ENABLED"] = GOOGLE_OAUTH_ENABLED
-
-# DB Config (decouple instead of os.getenv)
-DB_AUTO_CREATE = (
-    env_config("DB_AUTO_CREATE", default="0" if TESTING else "1", cast=str) == "1"
-)
 
 
 @app.middleware("http")
@@ -73,7 +81,6 @@ async def add_cache_headers(
 ) -> Response:
     response = await call_next(request)
     if request.url.path.startswith("/static/"):
-        # Short cache while iterating; switch to max-age=31536000 once cache-busting is wired up
         response.headers["Cache-Control"] = "public, max-age=600"
     return response
 
@@ -87,9 +94,6 @@ async def health() -> dict[str, str]:
 async def home_head() -> Response:
     """Handle Render's HEAD health check probe."""
     return Response(status_code=200)
-
-
-# --- HTML ROUTES ---
 
 
 @app.get("/", response_class=HTMLResponse, name="home")
@@ -134,19 +138,7 @@ async def ai_lobby(request: Request) -> HTMLResponse:
     )
 
 
-# Register routers
 app.include_router(auth_router)
 app.include_router(game_router)
 app.include_router(ai_router)
 app.include_router(scores_routes.router)
-
-
-@app.on_event("startup")
-async def init_db() -> None:
-    if not DB_AUTO_CREATE:
-        return
-    try:
-        await run_in_threadpool(Base.metadata.create_all, bind=engine)
-        logger.info("Database tables ensured")
-    except Exception as e:  # pragma: no cover (safety logging)
-        logger.error("DB Init Failed: %s", e)

@@ -5,7 +5,7 @@ Minimal Battleship engine.
 from __future__ import annotations
 
 import logging
-import secrets  # Changed from random to secrets for cryptographic security (S311)
+import secrets
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -95,30 +95,22 @@ class Game:
         }
 
     def place_fleet(self: Game) -> None:
+        """Randomly place all ships on the board."""
         self.ships.clear()
         fleet = self.get_fleet_config()
         for length in fleet:
             attempts = 0
             max_attempts = 100
             while attempts < max_attempts:
-                # Use secrets for cryptographically secure random choice
                 horizontal = secrets.choice([True, False])
 
                 if horizontal:
-                    # secrets.randbelow(n) returns 0 to n-1
-                    # Range needed: 0 to self.size - length (inclusive)
-                    x_limit = self.size - length + 1
-                    y_limit = self.size
-
-                    x = secrets.randbelow(x_limit)
-                    y = secrets.randbelow(y_limit)
+                    x = secrets.randbelow(self.size - length + 1)
+                    y = secrets.randbelow(self.size)
                     coords = {(x + i, y) for i in range(length)}
                 else:
-                    x_limit = self.size
-                    y_limit = self.size - length + 1
-
-                    x = secrets.randbelow(x_limit)
-                    y = secrets.randbelow(y_limit)
+                    x = secrets.randbelow(self.size)
+                    y = secrets.randbelow(self.size - length + 1)
                     coords = {(x, y + i) for i in range(length)}
 
                 if self._is_valid_placement(coords):
@@ -127,6 +119,7 @@ class Game:
                 attempts += 1
 
     def _is_valid_placement(self: Game, coords: set[Coord]) -> bool:
+        """Check coords don't overlap or touch existing ships."""
         if coords & self.ships:
             return False
         for x, y in coords:
@@ -134,7 +127,6 @@ class Game:
                 for dy in (-1, 0, 1):
                     if dx == 0 and dy == 0:
                         continue
-                    adj_x, adj_y = x + dx, y + dy
-                    if (adj_x, adj_y) in self.ships:
+                    if (x + dx, y + dy) in self.ships:
                         return False
         return True

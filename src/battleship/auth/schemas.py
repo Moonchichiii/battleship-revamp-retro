@@ -4,13 +4,10 @@ from __future__ import annotations
 
 from pydantic import BaseModel, EmailStr, Field
 
-# -----------------------------
-# Request payloads (JSON APIs)
-# -----------------------------
-
+# Request payloads
 
 class LoginRequest(BaseModel):
-    """JSON payload for login (optional, future-proof)."""
+    """JSON payload for login."""
 
     email: EmailStr
     password: str = Field(min_length=1)
@@ -18,17 +15,14 @@ class LoginRequest(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    """JSON payload for registration (optional, future-proof)."""
+    """JSON payload for registration."""
 
     email: EmailStr
     password: str = Field(min_length=1)
     confirm_password: str = Field(min_length=1)
 
 
-# -----------------------------
 # Response models
-# -----------------------------
-
 
 class UserInfo(BaseModel):
     """Public info about the currently authenticated user."""
@@ -42,8 +36,8 @@ class UserInfo(BaseModel):
 
 
 class TokenResponse(BaseModel):
-    """Bearer token response used by /auth/refresh (and any future token endpoints)."""
+    """Bearer token response."""
 
     access_token: str
-    token_type: str = "bearer" # noqa: S105
+    token_type: str = "bearer"  # noqa: S105
     expires_in: int = 1800
