@@ -54,7 +54,7 @@ A hyper-optimized, retro-styled Battleship game built for the modern web. Featur
 ### 1. Clone & Env
 
 ```bash
-git clone https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME].git
+git clone https://github.com/Moonchichiii/battleship-revamp-retro.git
 cd [REPO_NAME]
 cp .env.example .env
 ```
