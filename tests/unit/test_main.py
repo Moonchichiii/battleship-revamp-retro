@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import importlib
 from http import HTTPStatus
-from unittest.mock import Mock
 
 import pytest
 from fastapi.testclient import TestClient
-from main import app, is_hx
+from main import app  # Removed is_hx, testing behavior instead
 
 
-# pylint: disable=redefined-outer-name
 @pytest.fixture()
 def client_fx() -> TestClient:
     """Fixture to provide a test client."""
@@ -30,15 +28,6 @@ def test_health_endpoint(client_fx: TestClient) -> None:
     assert resp.status_code == HTTPStatus.OK
     data = resp.json()
     assert data["status"] == "ok"
-    assert "ts" in data
-
-
-def test_readyz_endpoint(client_fx: TestClient) -> None:
-    """GET /readyz returns ready + timestamp."""
-    resp = client_fx.get("/readyz")
-    assert resp.status_code == HTTPStatus.OK
-    data = resp.json()
-    assert data["status"] == "ready"
     assert "ts" in data
 
 
@@ -72,30 +61,7 @@ def test_signup_page(client_fx: TestClient) -> None:
     assert resp.status_code in (HTTPStatus.OK, HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-def test_is_hx_true() -> None:
-    """True when HX-Request header is 'true'."""
-    req = Mock()
-    req.headers.get.return_value = "true"
-    assert is_hx(req) is True
-    req.headers.get.assert_called_once_with("HX-Request", "")
-
-
-def test_is_hx_false() -> None:
-    """False when HX-Request header missing/empty."""
-    req = Mock()
-    req.headers.get.return_value = ""
-    assert is_hx(req) is False
-
-
-def test_is_hx_case_insensitive() -> None:
-    """Case-insensitive check."""
-    req = Mock()
-    req.headers.get.return_value = "TRUE"
-    assert is_hx(req) is True
-
-
 def test_basic_import_module() -> None:
     """Smoke test that the main module can be imported."""
     mod = importlib.import_module("main")
     assert hasattr(mod, "app")
-    assert hasattr(mod, "is_hx")

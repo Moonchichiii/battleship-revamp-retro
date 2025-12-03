@@ -7,7 +7,7 @@ import secrets
 import time
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Generator  # noqa: UP035
+from typing import Any, Generator
 
 import pytest
 from decouple import AutoConfig
@@ -27,7 +27,7 @@ user = config("POSTGRES_USER", default="postgres")
 db = config("POSTGRES_DB", default="battleship_revamp")
 password = config("POSTGRES_PASSWORD", default="")
 
-# Force-set env so database.py definitely sees them (don't use setdefault)
+# Force-set env so database.py definitely sees them
 os.environ["POSTGRES_HOST"] = host
 os.environ["POSTGRES_PORT"] = str(port)
 os.environ["POSTGRES_USER"] = user
@@ -44,13 +44,13 @@ TEST_SCHEMA = f"test_{secrets.token_hex(6)}"
 
 
 @pytest.fixture(scope="session", autouse=True)
-def _db_bootstrap() -> Generator[None]:
+def _db_bootstrap() -> Generator[None, None, None]:
     """Connect, create schema, and create tables inside an isolated test schema."""
     # Import AFTER env is set so engine picks everything up
-    from src.api.core.database import Base, engine
+    from src.battleship.core.database import Base, engine
 
     # Ensure models are registered
-    import_module("src.api.models.user")
+    import_module("src.battleship.users.models")
 
     # Brief wait for Postgres to be reachable
     deadline = time.time() + 10
@@ -69,7 +69,7 @@ def _db_bootstrap() -> Generator[None]:
         conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{TEST_SCHEMA}"'))
 
     @event.listens_for(engine, "connect")
-    def _set_search_path(dbapi_conn: Any, _: Any) -> None:  # noqa: ANN401
+    def _set_search_path(dbapi_conn: Any, _: Any) -> None:
         with dbapi_conn.cursor() as cur:
             cur.execute(f'SET search_path TO "{TEST_SCHEMA}", public')
 
@@ -82,9 +82,9 @@ def _db_bootstrap() -> Generator[None]:
 
 
 @pytest.fixture(autouse=True)
-def _db_clean_between_tests() -> Generator[None]:
+def _db_clean_between_tests() -> Generator[None, None, None]:
     """Truncate tables between tests inside the isolated schema."""
-    from src.api.core.database import Base, engine
+    from src.battleship.core.database import Base, engine
 
     yield
     tables = ",".join(t.name for t in Base.metadata.sorted_tables)
