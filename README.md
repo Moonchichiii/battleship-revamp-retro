@@ -1,7 +1,7 @@
 # Battleship Revamp: Retro Command
 
-[![CI Status](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/ci.yml/badge.svg)](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/ci.yml)
-[![Security Check](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/security.yml/badge.svg)](https://github.com/[YOUR_GITHUB_USER]/[REPO_NAME]/actions/workflows/security.yml)
+[![CI Status](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/ci.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/ci.yml)
+[![Security Check](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/security.yml/badge.svg)](https://github.com/Moonchichiii/battleship-revamp-retro/actions/workflows/security.yml)
 [![Python Version](https://img.shields.io/badge/python-3.12+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Code Style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Deployment](https://img.shields.io/badge/Deploy-Render-black?logo=render&logoColor=white)](https://render.com)
