@@ -1,4 +1,4 @@
-﻿"""Pytest DB bootstrap: real DB, isolated schema; strictly localhost for testing."""
+﻿"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
 
 from __future__ import annotations
 
@@ -7,31 +7,26 @@ import secrets
 import time
 from collections.abc import Generator
 from importlib import import_module
-from pathlib import Path
 from typing import Any
 
 import pytest
 from sqlalchemy import event, text
 
-ROOT = Path(__file__).resolve().parents[1]
-
-os.environ.update({
-    "TESTING": "true",
-    "POSTGRES_HOST": "localhost",
-    "POSTGRES_PORT": "5432",
-    "POSTGRES_USER": "postgres",
-    "POSTGRES_PASSWORD": "postgres",
-    "POSTGRES_DB": "battleship_revamp_test",
-})
-
-os.environ.pop("DATABASE_URL", None)
+os.environ["TESTING"] = "true"
+os.environ["POSTGRES_HOST"] = "localhost"
+os.environ["POSTGRES_PORT"] = "5433"
+os.environ["POSTGRES_USER"] = "postgres"
+os.environ["POSTGRES_PASSWORD"] = "postgres"  # noqa: S105
+os.environ["POSTGRES_DB"] = "battleship_revamp_test"
+os.environ["DATABASE_URL"] = ""
+os.environ["DISABLE_RATE_LIMIT"] = "1"
 
 TEST_SCHEMA = f"test_{secrets.token_hex(6)}"
 
 
 @pytest.fixture(scope="session", autouse=True)
 def _db_bootstrap() -> Generator[None, None, None]:
-    """Connect, create schema, and create tables inside an isolated test schema."""
+    """Create isolated test schema and tables, tear down on exit."""
     from src.battleship.core.database import Base, engine
 
     import_module("src.battleship.users.models")
@@ -44,8 +39,7 @@ def _db_bootstrap() -> Generator[None, None, None]:
                 break
         except Exception as e:
             if time.time() > deadline:
-                print(f"Could not connect to Test DB: {e}")
-                raise
+                raise ConnectionError(f"Could not connect to Test DB: {e}") from e
             time.sleep(0.5)
 
     with engine.begin() as conn:
@@ -66,7 +60,7 @@ def _db_bootstrap() -> Generator[None, None, None]:
 
 @pytest.fixture(autouse=True)
 def _db_clean_between_tests() -> Generator[None, None, None]:
-    """Truncate tables between tests inside the isolated schema."""
+    """Truncate all tables between tests."""
     from src.battleship.core.database import Base, engine
 
     yield

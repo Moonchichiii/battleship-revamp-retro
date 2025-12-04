@@ -4,11 +4,14 @@ services:
       context: .
       dockerfile: Dockerfile
 
+
     ports:
       - "${PORT:-8000}:8000"
 
+
     env_file:
       - .env
+
 
     environment:
       ENVIRONMENT: ${ENVIRONMENT:-production}
@@ -22,7 +25,9 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
 
+
     restart: unless-stopped
+
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -30,3 +35,5 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+
