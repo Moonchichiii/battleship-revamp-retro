@@ -96,8 +96,6 @@ This project is configured for **Render.com** (Docker runtime).
    - `DISABLE_RATE_LIMIT`: `0`
    - `EMAIL_SYNTAX_ONLY`: `0`
    - `DB_AUTO_CREATE`: `1` (First run only)
-4. **OAuth Redirects:** Update your GitHub/Google developer consoles to point to:
-   - `https://<YOUR-RENDER-URL>/auth/github/callback`
 
 [Back to top](#table-of-contents)
 
