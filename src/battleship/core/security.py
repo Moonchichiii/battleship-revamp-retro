@@ -4,24 +4,15 @@ from __future__ import annotations
 
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Any, Final
+from typing import Any
 
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
-try:
-    from passlib.exc import PasslibError as _PasslibError  # type: ignore[attr-defined]
-except ImportError:  # pragma: no cover
-
-    class _PasslibError(Exception):  # type: ignore[no-redef]
-        pass
-
-
-_PWD_CONTEXT: Final[CryptContext] = CryptContext(
-    schemes=["argon2"],
-    deprecated="auto",
-)
+# Initialize the Argon2 Hasher (Default parameters are secure)
+_HASHER = PasswordHasher()
 
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -29,19 +20,23 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_LENGTH = 128
 
-DEFAULT_TOKEN_TYPE = "access"  # noqa: S105
+DEFAULT_TOKEN_TYPE = "access"
 
 
 def hash_password(plaintext: str) -> str:
-    """Hash password with Argon2."""
-    return _PWD_CONTEXT.hash(plaintext)
+    """Hash password using Argon2."""
+    return _HASHER.hash(plaintext)
 
 
 def verify_password(plaintext: str, password_hash: str) -> bool:
     """Return True if plaintext matches hash; False on any verification error."""
     try:
-        return _PWD_CONTEXT.verify(plaintext, password_hash)
-    except (_PasslibError, ValueError):
+        # verify() returns True or raises VerifyMismatchError
+        _HASHER.verify(password_hash, plaintext)
+        return True
+    except (VerifyMismatchError, ValueError, TypeError):
+        # VerifyMismatchError: Wrong password
+        # ValueError/TypeError: Invalid hash format or malformed string
         return False
 
 

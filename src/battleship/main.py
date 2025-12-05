@@ -41,7 +41,6 @@ DB_AUTO_CREATE = (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Handle startup and shutdown logic."""
     if DB_AUTO_CREATE:
         try:
             await run_in_threadpool(Base.metadata.create_all, bind=engine)
@@ -92,49 +91,48 @@ async def health() -> dict[str, str]:
 
 @app.head("/")
 async def home_head() -> Response:
-    """Handle Render's HEAD health check probe."""
     return Response(status_code=200)
 
 
 @app.get("/", response_class=HTMLResponse, name="home")
 async def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "home.html", {"request": request, "active_tab": "home"},
+        request, "home.html", {"active_tab": "home"}
     )
 
 
 @app.get("/game", response_class=HTMLResponse, name="game")
 async def game_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "game.html", {"request": request, "active_tab": "game"},
+        request, "game.html", {"active_tab": "game"}
     )
 
 
 @app.get("/scores", response_class=HTMLResponse, name="scores")
 async def scores_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "scores.html", {"request": request, "active_tab": "scores"},
+        request, "scores.html", {"active_tab": "scores"}
     )
 
 
 @app.get("/signin", response_class=HTMLResponse, name="signin")
 async def signin_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "signin.html", {"request": request, "active_tab": "signin"},
+        request, "signin.html", {"active_tab": "signin"}
     )
 
 
 @app.get("/signup", response_class=HTMLResponse, name="signup")
 async def signup_page(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "signup.html", {"request": request, "active_tab": "signup"},
+        request, "signup.html", {"active_tab": "signup"}
     )
 
 
 @app.get("/ai", response_class=HTMLResponse, name="ai_lobby")
 async def ai_lobby(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
-        "ai.html", {"request": request, "active_tab": "ai"},
+        request, "ai.html", {"active_tab": "ai"}
     )
 
 

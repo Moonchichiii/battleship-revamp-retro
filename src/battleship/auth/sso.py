@@ -9,8 +9,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi_sso.sso.github import GithubSSO
 from fastapi_sso.sso.google import GoogleSSO
 
-# Load templates context just for globals
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[1]
 templates = Jinja2Templates(directory=str(BASE_DIR / "web" / "templates"))
 
 # --- CONFIGURATION ---

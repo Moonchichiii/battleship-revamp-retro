@@ -9,16 +9,15 @@ from fastapi import Request, Response
 from fastapi.templating import Jinja2Templates
 
 # Setup Templates
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(__file__).resolve().parents[1]
 templates = Jinja2Templates(directory=str(BASE_DIR / "web" / "templates"))
-
 
 class AuthRenderer:
     """Builder pattern for HTMX HTML responses."""
 
     def __init__(self, request: Request) -> None:
         self.request = request
-        self._context: dict[str, Any] = {"request": request}
+        self._context: dict[str, Any] = {}
 
     def with_redirect(self, url: str) -> AuthRenderer:
         self._context["redirect_url"] = url
@@ -43,4 +42,4 @@ class AuthRenderer:
             "message": message,
             **kwargs
         })
-        return templates.TemplateResponse("_auth_result.html", self._context)
+        return templates.TemplateResponse(self.request, "_auth_result.html", self._context)

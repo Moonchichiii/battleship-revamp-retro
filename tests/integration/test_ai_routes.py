@@ -53,7 +53,8 @@ def _override_auth_dependency() -> Generator[None, None, None]:
 def test_ai_lobby_requires_auth(client: TestClient) -> None:
     r = client.get("/ai", headers={"HX-Request": "true"})
     assert r.status_code == HTTP_OK
-    assert "AI Opponents" in r.text
+    # The page served is ai.html which uses this heading:
+    assert "Tactical Simulation" in r.text
 
 @pytest.mark.parametrize(
     ("tier", "size"),

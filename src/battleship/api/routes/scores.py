@@ -183,12 +183,11 @@ async def scores_page(
     top_scores = score_service.get_top_scores(limit=20, board_size=8)
 
     context = {
-        "request": request,
         "current_user": current_user,
         "scores": top_scores,
         "offset": 0,
     }
-    return templates.TemplateResponse("scores.html", context)
+    return templates.TemplateResponse(request, "scores.html", context)
 
 
 @router.get("/api/scores/top", response_class=HTMLResponse)
@@ -202,11 +201,10 @@ async def api_top_scores(
     top_scores = score_service.get_top_scores(limit=limit, board_size=board_size)
 
     context = {
-        "request": request,
         "scores": top_scores,
         "offset": 0,
     }
-    return templates.TemplateResponse("_scores_tbody.html", context)
+    return templates.TemplateResponse(request, "_scores_tbody.html", context)
 
 
 def save_game_score(
