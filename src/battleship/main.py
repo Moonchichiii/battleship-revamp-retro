@@ -16,6 +16,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import text
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -42,9 +43,19 @@ DB_AUTO_CREATE = (
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if DB_AUTO_CREATE:
-        try:
+        try:            
             await run_in_threadpool(Base.metadata.create_all, bind=engine)
-            logger.info("Database tables ensured")
+            logger.info("Database tables ensured (SQLAlchemy)")
+            
+            script_path = Path("scripts/init.sql")
+            if script_path.exists():
+                sql_script = script_path.read_text()
+                with engine.begin() as conn:
+                    conn.execute(text(sql_script))
+                logger.info("Executed init.sql successfully")
+            else:
+                logger.warning("scripts/init.sql not found, skipping raw SQL init.")
+
         except Exception as e:
             logger.error("DB Init Failed: %s", e)
     yield
