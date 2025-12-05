@@ -1,5 +1,3 @@
-// static/js/game-engine.js
-
 class TacticalSystems {
     constructor() {
         this.soundEnabled = false;
