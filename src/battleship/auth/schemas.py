@@ -6,6 +6,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 # Request payloads
 
+
 class LoginRequest(BaseModel):
     """JSON payload for login."""
 
@@ -23,6 +24,7 @@ class RegisterRequest(BaseModel):
 
 
 # Response models
+
 
 class UserInfo(BaseModel):
     """Public info about the currently authenticated user."""

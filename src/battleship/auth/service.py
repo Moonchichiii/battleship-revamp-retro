@@ -60,7 +60,9 @@ class AuthServiceLogic:
     def __init__(self, auth_service: user_models.AuthService) -> None:
         self.db_service = auth_service
 
-    def process_login(self, email: str, password: str) -> ServiceResult[user_models.User]:
+    def process_login(
+        self, email: str, password: str
+    ) -> ServiceResult[user_models.User]:
         """Process login and return user on success."""
         email_result = validate_email_format(email)
         if not email_result.success:

@@ -24,7 +24,9 @@ def login(
     request: Request,
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
-    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
+    auth_service: Annotated[
+        user_models.AuthService, Depends(user_models.get_auth_service)
+    ],
     remember_raw: Annotated[str | None, Form(alias="remember")] = None,
 ) -> Response:
     """Authenticate and start a session."""
@@ -32,7 +34,9 @@ def login(
     logic = AuthServiceLogic(auth_service)
 
     if not auth_service.check_rate_limit(request, "login", 10):
-        return renderer.render_result("Too many login attempts. Try again later.", success=False)
+        return renderer.render_result(
+            "Too many login attempts. Try again later.", success=False
+        )
 
     result = logic.process_login(email, password)
 
@@ -53,7 +57,9 @@ def login(
     if is_hx:
         renderer.with_redirect("/game")
         renderer.with_user_display(user.display_name or user.username)
-        response = renderer.render_result(f"Welcome back, {user.username}!", success=True)
+        response = renderer.render_result(
+            f"Welcome back, {user.username}!", success=True
+        )
     else:
         response = RedirectResponse(url="/game", status_code=303)
 
@@ -64,8 +70,15 @@ def login(
         "path": "/",
     }
 
-    response.set_cookie("session_token", session_info["session_token"], max_age=session_info["max_age"], **cookie_settings)
-    response.set_cookie("access_token", session_info["access_token"], max_age=1800, **cookie_settings)
+    response.set_cookie(
+        "session_token",
+        session_info["session_token"],
+        max_age=session_info["max_age"],
+        **cookie_settings,
+    )
+    response.set_cookie(
+        "access_token", session_info["access_token"], max_age=1800, **cookie_settings
+    )
 
     return response
 
@@ -76,14 +89,18 @@ async def register(
     email: Annotated[str, Form(...)],
     password: Annotated[str, Form(...)],
     confirm_password: Annotated[str, Form(...)],
-    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
+    auth_service: Annotated[
+        user_models.AuthService, Depends(user_models.get_auth_service)
+    ],
 ) -> HTMLResponse:
     """Create a new local account."""
     renderer = AuthRenderer(request)
     logic = AuthServiceLogic(auth_service)
 
     if not auth_service.check_rate_limit(request, "register", 5):
-        return renderer.render_result("Too many registration attempts. Try again later.", success=False)
+        return renderer.render_result(
+            "Too many registration attempts. Try again later.", success=False
+        )
 
     result = logic.process_registration(email, password, confirm_password)
 
@@ -92,7 +109,9 @@ async def register(
 
     user = result.data
     renderer.with_login_link()
-    return renderer.render_result(f"Account created successfully for {user.username}!", success=True)
+    return renderer.render_result(
+        f"Account created successfully for {user.username}!", success=True
+    )
 
 
 @router.post("/logout", response_class=HTMLResponse)
@@ -102,7 +121,9 @@ async def logout(
         user_models.AuthenticatedUser | None,
         Depends(user_models.optional_authenticated_user),
     ],
-    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
+    auth_service: Annotated[
+        user_models.AuthService, Depends(user_models.get_auth_service)
+    ],
 ) -> Response:
     """Revoke session and clear cookies."""
     if current_user:
@@ -140,7 +161,9 @@ async def google_login():
 @router.get("/github/callback")
 async def github_callback(
     request: Request,
-    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
+    auth_service: Annotated[
+        user_models.AuthService, Depends(user_models.get_auth_service)
+    ],
 ):
     """Handle GitHub return."""
     try:
@@ -154,7 +177,9 @@ async def github_callback(
 @router.get("/google/callback")
 async def google_callback(
     request: Request,
-    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
+    auth_service: Annotated[
+        user_models.AuthService, Depends(user_models.get_auth_service)
+    ],
 ):
     """Handle Google return."""
     try:
@@ -198,8 +223,15 @@ async def process_sso_login(
         "path": "/",
     }
 
-    response.set_cookie("session_token", session_info["session_token"], max_age=session_info["max_age"], **cookie_settings)
-    response.set_cookie("access_token", session_info["access_token"], max_age=1800, **cookie_settings)
+    response.set_cookie(
+        "session_token",
+        session_info["session_token"],
+        max_age=session_info["max_age"],
+        **cookie_settings,
+    )
+    response.set_cookie(
+        "access_token", session_info["access_token"], max_age=1800, **cookie_settings
+    )
 
     return response
 
@@ -228,7 +260,9 @@ async def get_current_user_info(
 async def refresh_token(
     request: Request,
     response: Response,
-    auth_service: Annotated[user_models.AuthService, Depends(user_models.get_auth_service)],
+    auth_service: Annotated[
+        user_models.AuthService, Depends(user_models.get_auth_service)
+    ],
 ) -> TokenResponse:
     """Refresh the access token from a valid session."""
     logic = AuthServiceLogic(auth_service)

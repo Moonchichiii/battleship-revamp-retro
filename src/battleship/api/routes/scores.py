@@ -51,9 +51,7 @@ class Score(Base):
     accuracy: Mapped[float] = mapped_column(Float, nullable=False)
     board_size: Mapped[int] = mapped_column(Integer, nullable=False)
     difficulty: Mapped[str] = mapped_column(
-        String(20),
-        default='standard',
-        nullable=True
+        String(20), default="standard", nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -94,7 +92,9 @@ class ScoreService:
         self.db.refresh(score_record)
         return score_record
 
-    def get_top_scores(self, limit: int = 10, board_size: int = 8) -> list[dict[str, Any]]:
+    def get_top_scores(
+        self, limit: int = 10, board_size: int = 8
+    ) -> list[dict[str, Any]]:
         """Get top scores using composite index (board_size, score, shots)."""
         from src.battleship.users.models import User
 
@@ -134,7 +134,9 @@ class ScoreService:
         )
         return list(self.db.execute(stmt).scalars().all())
 
-    def get_user_best_score(self, user_id: uuid.UUID, board_size: int = 8) -> Score | None:
+    def get_user_best_score(
+        self, user_id: uuid.UUID, board_size: int = 8
+    ) -> Score | None:
         """Get a user's absolute best score."""
         stmt = (
             select(Score)
@@ -150,19 +152,15 @@ class ScoreService:
         subq = (
             select(
                 Score.user_id,
-                func.rank().over(
-                    order_by=[Score.score.desc(), Score.shots_fired.asc()]
-                ).label("rank")
+                func.rank()
+                .over(order_by=[Score.score.desc(), Score.shots_fired.asc()])
+                .label("rank"),
             )
             .filter(Score.board_size == board_size)
             .subquery()
         )
 
-        stmt = (
-            select(subq.c.rank)
-            .filter(subq.c.user_id == user_id)
-            .limit(1)
-        )
+        stmt = select(subq.c.rank).filter(subq.c.user_id == user_id).limit(1)
 
         return self.db.execute(stmt).scalar_one_or_none()
 

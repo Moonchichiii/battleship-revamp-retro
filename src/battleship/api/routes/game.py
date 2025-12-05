@@ -35,10 +35,12 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "web" / "templates"))
 
 STANDARD_BOARD_SIZE = DEFAULT_BOARD_SIZE
 
+
 class AITier(Enum):
     ROOKIE = "rookie"
     VETERAN = "veteran"
     ADMIRAL = "admiral"
+
 
 AI_DIFFICULTY_MAP = {
     AITier.ROOKIE: "novice",
@@ -49,6 +51,7 @@ AI_DIFFICULTY_MAP = {
 # ---------------------------------------------------------------------------
 # Session state
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class SessionState:
@@ -69,11 +72,14 @@ class SessionState:
     def ai_won(self) -> bool:
         return self.ai_target.ships.issubset(self.ai_target.hits)
 
+
 _SESSIONS: dict[str, SessionState] = {}
+
 
 def _session_key(user: AuthenticatedUser | None, ai_tier: str) -> str:
     user_part = user.id if user else "guest"
     return f"{user_part}|{ai_tier}"
+
 
 def _new_session() -> SessionState:
     return SessionState(
@@ -81,11 +87,13 @@ def _new_session() -> SessionState:
         ai_target=Game.new(size=STANDARD_BOARD_SIZE),
     )
 
+
 def get_user_session(user: AuthenticatedUser | None, ai_tier: str) -> SessionState:
     key = _session_key(user, ai_tier)
     if key not in _SESSIONS:
         _SESSIONS[key] = _new_session()
     return _SESSIONS[key]
+
 
 def reset_user_session(user: AuthenticatedUser | None, ai_tier: str) -> SessionState:
     key = _session_key(user, ai_tier)
@@ -93,9 +101,11 @@ def reset_user_session(user: AuthenticatedUser | None, ai_tier: str) -> SessionS
     _SESSIONS[key] = session
     return session
 
+
 # ---------------------------------------------------------------------------
 # Score saving helper
 # ---------------------------------------------------------------------------
+
 
 async def save_user_score(
     user: AuthenticatedUser,
@@ -128,11 +138,18 @@ async def save_user_score(
     except Exception:
         logger.exception("Failed to save score for %s", user.username)
 
+
 # ---------------------------------------------------------------------------
 # Helper
 # ---------------------------------------------------------------------------
 
-def _render_board_response(request: Request, session: SessionState, current_user: AuthenticatedUser | None, ai_level: AITier):
+
+def _render_board_response(
+    request: Request,
+    session: SessionState,
+    current_user: AuthenticatedUser | None,
+    ai_level: AITier,
+):
     """Helper to render the board template."""
     context = {
         "request": request,
@@ -147,9 +164,11 @@ def _render_board_response(request: Request, session: SessionState, current_user
     # FIX: Pass request as the first argument
     return templates.TemplateResponse(request, "_board.html", context)
 
+
 # ---------------------------------------------------------------------------
 # Core turn logic & Endpoints
 # ---------------------------------------------------------------------------
+
 
 async def _take_turn(
     *,
@@ -184,7 +203,9 @@ async def _take_turn(
         if result.get("won"):
             messages.append("VICTORY! Enemy fleet eliminated.")
             if current_user:
-                await save_user_score(current_user, player_board, auth_service, ai_level.value)
+                await save_user_score(
+                    current_user, player_board, auth_service, ai_level.value
+                )
     else:
         messages.append(f"MISS at ({x + 1}, {y + 1}).")
 
@@ -194,17 +215,24 @@ async def _take_turn(
         ai_hit_result = ai_board.fire(ai_move_x, ai_move_y)
 
         if ai_hit_result.get("hit"):
-            messages.append(f"WARNING: Enemy return fire HIT at ({ai_move_x + 1}, {ai_move_y + 1})!")
+            messages.append(
+                f"WARNING: Enemy return fire HIT at ({ai_move_x + 1}, {ai_move_y + 1})!"
+            )
         else:
-            messages.append(f"Enemy return fire missed at ({ai_move_x + 1}, {ai_move_y + 1}).")
+            messages.append(
+                f"Enemy return fire missed at ({ai_move_x + 1}, {ai_move_y + 1})."
+            )
 
     session.append_log(" ".join(messages))
     return _render_board_response(request, session, current_user, ai_level)
 
+
 @router.post("/new", response_class=HTMLResponse)
 async def new_game(
     request: Request,
-    current_user: Annotated[AuthenticatedUser | None, Depends(optional_authenticated_user)],
+    current_user: Annotated[
+        AuthenticatedUser | None, Depends(optional_authenticated_user)
+    ],
     ai_tier: Annotated[str, Form()] = "rookie",
 ) -> HTMLResponse:
     try:
@@ -218,18 +246,24 @@ async def new_game(
 
     return _render_board_response(request, session, current_user, ai_level)
 
+
 @router.post("/reset", response_class=HTMLResponse)
 async def reset_game(
     request: Request,
-    current_user: Annotated[AuthenticatedUser | None, Depends(optional_authenticated_user)],
+    current_user: Annotated[
+        AuthenticatedUser | None, Depends(optional_authenticated_user)
+    ],
     ai_tier: Annotated[str, Form()] = "rookie",
 ) -> HTMLResponse:
     return await new_game(request, current_user, ai_tier)
 
+
 @router.post("/make-move", response_class=HTMLResponse)
 async def make_move(
     request: Request,
-    current_user: Annotated[AuthenticatedUser | None, Depends(optional_authenticated_user)],
+    current_user: Annotated[
+        AuthenticatedUser | None, Depends(optional_authenticated_user)
+    ],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     x: Annotated[int, Form()],
     y: Annotated[int, Form()],

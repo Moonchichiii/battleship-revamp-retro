@@ -59,7 +59,9 @@ def sample_user_data() -> dict[str, str]:
 
 
 class TestUserRegistration:
-    def test_successful_registration(self, client: TestClient, sample_user_data: dict) -> None:
+    def test_successful_registration(
+        self, client: TestClient, sample_user_data: dict
+    ) -> None:
         # HTMX Response expected
         resp = client.post(
             "/auth/register",
@@ -103,10 +105,16 @@ class TestAuthService:
 
         # Assuming limit is 5 for this test context
         for _ in range(5):
-            assert auth_service.check_rate_limit(
-                mock_request, "test_action", limit=5, window=60
-            ) is True
+            assert (
+                auth_service.check_rate_limit(
+                    mock_request, "test_action", limit=5, window=60
+                )
+                is True
+            )
 
-        assert auth_service.check_rate_limit(
-            mock_request, "test_action", limit=5, window=60
-        ) is False
+        assert (
+            auth_service.check_rate_limit(
+                mock_request, "test_action", limit=5, window=60
+            )
+            is False
+        )

@@ -76,7 +76,8 @@ templates.env.globals["GOOGLE_OAUTH_ENABLED"] = GOOGLE_OAUTH_ENABLED
 
 @app.middleware("http")
 async def add_cache_headers(
-    request: Request, call_next: RequestResponseEndpoint,
+    request: Request,
+    call_next: RequestResponseEndpoint,
 ) -> Response:
     response = await call_next(request)
     if request.url.path.startswith("/static/"):
@@ -96,44 +97,32 @@ async def home_head() -> Response:
 
 @app.get("/", response_class=HTMLResponse, name="home")
 async def home(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "home.html", {"active_tab": "home"}
-    )
+    return templates.TemplateResponse(request, "home.html", {"active_tab": "home"})
 
 
 @app.get("/game", response_class=HTMLResponse, name="game")
 async def game_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "game.html", {"active_tab": "game"}
-    )
+    return templates.TemplateResponse(request, "game.html", {"active_tab": "game"})
 
 
 @app.get("/scores", response_class=HTMLResponse, name="scores")
 async def scores_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "scores.html", {"active_tab": "scores"}
-    )
+    return templates.TemplateResponse(request, "scores.html", {"active_tab": "scores"})
 
 
 @app.get("/signin", response_class=HTMLResponse, name="signin")
 async def signin_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "signin.html", {"active_tab": "signin"}
-    )
+    return templates.TemplateResponse(request, "signin.html", {"active_tab": "signin"})
 
 
 @app.get("/signup", response_class=HTMLResponse, name="signup")
 async def signup_page(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "signup.html", {"active_tab": "signup"}
-    )
+    return templates.TemplateResponse(request, "signup.html", {"active_tab": "signup"})
 
 
 @app.get("/ai", response_class=HTMLResponse, name="ai_lobby")
 async def ai_lobby(request: Request) -> HTMLResponse:
-    return templates.TemplateResponse(
-        request, "ai.html", {"active_tab": "ai"}
-    )
+    return templates.TemplateResponse(request, "ai.html", {"active_tab": "ai"})
 
 
 app.include_router(auth_router)

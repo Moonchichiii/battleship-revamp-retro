@@ -12,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 BASE_DIR = Path(__file__).resolve().parents[1]
 templates = Jinja2Templates(directory=str(BASE_DIR / "web" / "templates"))
 
+
 class AuthRenderer:
     """Builder pattern for HTMX HTML responses."""
 
@@ -35,11 +36,11 @@ class AuthRenderer:
         self._context["logged_out"] = True
         return self
 
-    def render_result(self, message: str, success: bool = False, **kwargs: Any) -> Response:
+    def render_result(
+        self, message: str, success: bool = False, **kwargs: Any
+    ) -> Response:
         """Render the standard auth result fragment."""
-        self._context.update({
-            "ok": success,
-            "message": message,
-            **kwargs
-        })
-        return templates.TemplateResponse(self.request, "_auth_result.html", self._context)
+        self._context.update({"ok": success, "message": message, **kwargs})
+        return templates.TemplateResponse(
+            self.request, "_auth_result.html", self._context
+        )

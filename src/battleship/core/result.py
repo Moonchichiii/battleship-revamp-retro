@@ -5,6 +5,7 @@ from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
+
 @dataclass
 class ServiceResult(Generic[T]):
     success: bool
