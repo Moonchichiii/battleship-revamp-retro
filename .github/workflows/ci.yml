@@ -58,7 +58,7 @@ jobs:
         # These env vars match the service container above
         env:
           POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
+          POSTGRES_PORT: 5433
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: battleship_revamp_test
