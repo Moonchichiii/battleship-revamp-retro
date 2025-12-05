@@ -51,7 +51,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             if script_path.exists():
                 sql_script = script_path.read_text()
                 with engine.begin() as conn:
-                    conn.execute(text(sql_script))
+                    # Split statements to execute them individually
+                    for statement in sql_script.split(";"):
+                        if statement.strip():
+                            conn.execute(text(statement))
                 logger.info("Executed init.sql successfully")
             else:
                 logger.warning("scripts/init.sql not found, skipping raw SQL init.")
