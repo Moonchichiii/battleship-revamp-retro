@@ -11,7 +11,6 @@ from argon2.exceptions import VerifyMismatchError
 from fastapi import HTTPException, status
 from jose import JWTError, jwt
 
-# Initialize the Argon2 Hasher (Default parameters are secure)
 _HASHER = PasswordHasher()
 
 JWT_ALGORITHM = "HS256"
@@ -20,7 +19,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 MIN_PASSWORD_LENGTH = 8
 MAX_PASSWORD_LENGTH = 128
 
-DEFAULT_TOKEN_TYPE = "access"
+DEFAULT_TOKEN_TYPE = "access"  # noqa: S105
 
 
 def hash_password(plaintext: str) -> str:
@@ -31,17 +30,14 @@ def hash_password(plaintext: str) -> str:
 def verify_password(plaintext: str, password_hash: str) -> bool:
     """Return True if plaintext matches hash; False on any verification error."""
     try:
-        # verify() returns True or raises VerifyMismatchError
         _HASHER.verify(password_hash, plaintext)
         return True
     except (VerifyMismatchError, ValueError, TypeError):
-        # VerifyMismatchError: Wrong password
-        # ValueError/TypeError: Invalid hash format or malformed string
         return False
 
 
 def validate_password_strength(password: str) -> tuple[bool, list[str]]:
-    """Validate password strength."""
+    """Validate password strength and return (is_valid, errors)."""
     errors: list[str] = []
     if len(password) < MIN_PASSWORD_LENGTH:
         errors.append(f"Password must be at least {MIN_PASSWORD_LENGTH} characters")
@@ -91,7 +87,7 @@ def verify_token(
 
 
 class SecurityUtils:
-    """Misc. security helpers."""
+    """Security helper utilities."""
 
     @staticmethod
     def generate_secure_token(length: int = 32) -> str:
@@ -100,15 +96,14 @@ class SecurityUtils:
 
     @staticmethod
     def validate_password_strength(password: str) -> tuple[bool, list[str]]:
-        """Proxy to validator (back-compat)."""
+        """Validate password strength."""
         return validate_password_strength(password)
 
 
 class AuthenticationError(HTTPException):
-    """Auth error with WWW-Authenticate header."""
+    """Authentication error with WWW-Authenticate header."""
 
     def __init__(self, detail: str = "Authentication failed") -> None:
-        """Initialize an AuthenticationError returning 401 with a WWW-Authenticate header."""
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=detail,
