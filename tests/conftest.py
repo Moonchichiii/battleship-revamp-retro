@@ -1,4 +1,4 @@
-"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
+﻿"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ os.environ["TESTING"] = "true"
 os.environ["POSTGRES_HOST"] = "localhost"
 os.environ["POSTGRES_PORT"] = "5433"
 os.environ["POSTGRES_USER"] = "postgres"
-os.environ["POSTGRES_PASSWORD"] = "postgres"  # noqa: S105
+os.environ["POSTGRES_PASSWORD"] = os.getenv("TEST_DB_PASSWORD")
 os.environ["POSTGRES_DB"] = "battleship_revamp_test"
 os.environ["DATABASE_URL"] = ""
 os.environ["DISABLE_RATE_LIMIT"] = "1"
