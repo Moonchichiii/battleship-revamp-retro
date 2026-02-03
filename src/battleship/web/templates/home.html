@@ -1,6 +1,8 @@
-{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
-endif %} {% block title %}Battleship Revamp — Home{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+
+{% block title %}Battleship Revamp — Home{% endblock %}
+
+{% block content %}
 <section id="home" class="home-grid">
     <!-- LEFT: Ship / hero art -->
     <div class="home-ship panel">
@@ -44,8 +46,7 @@ content %}
 ⠀⠀⠀⠀⠀⢿⣷⡶⢿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠟⣿⡿⠟⠋⠀⠀⠈⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠀⠀⢸⣿⠀⣸⡿⠟⠛⠛⠛⢻⠟⠉⠀⠾⠟⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⠶⠿⠛⠛⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-    </pre
-        >
+        </pre>
     </div>
 
     <!-- RIGHT: Rules / messaging -->
@@ -53,8 +54,9 @@ content %}
         <h2>Deployment Briefing</h2>
 
         <p class="tagline">
-            You are cleared to engage in endless tactical skirmishes against the simulator. 
-            However, only registered commanders may challenge the <strong>AI Command Fleet</strong>.
+            You are cleared to engage in endless tactical skirmishes against the
+            simulator. However, only registered commanders may challenge the
+            <strong>AI Command Fleet</strong>.
         </p>
 
         <ul class="rules-list">

@@ -1,8 +1,6 @@
-{% if not request.headers.get("HX-Request") %} 
-{% extends "base.html" %} 
-{% endif %} 
+{% extends "base.html" %}
 
-{% block title %}Tactical Simulation (AI) — Battleship{% endblock %} 
+{% block title %}Tactical Simulation (AI) — Battleship{% endblock %}
 
 {% block content %}
 <section class="panel is-active">
@@ -11,8 +9,8 @@
         <div class="subtitle">Select Adversary Intelligence Level</div>
     </div>
 
-    <div class="game-controls" style="margin-top: 2rem">
-        <div class="actions" style="justify-content: center; gap: 1rem; flex-wrap: wrap;">
+    <div class="game-controls ai-controls">
+        <div class="actions ai-actions">
             <!-- Cadet -->
             <button
                 class="btn"
@@ -22,9 +20,9 @@
                 hx-swap="innerHTML"
                 hx-push-url="true"
             >
-                <span style="display: block; font-size: 1.5rem; margin-bottom: 0.5rem;">❖</span>
+                <span class="ai-tier-icon">❖</span>
                 ROOKIE
-                <div class="hint" style="margin-top: 0.5rem">Randomized</div>
+                <div class="hint">Randomized</div>
             </button>
 
             <!-- Commander -->
@@ -36,9 +34,9 @@
                 hx-swap="innerHTML"
                 hx-push-url="true"
             >
-                <span style="display: block; font-size: 1.5rem; margin-bottom: 0.5rem;">❖❖</span>
+                <span class="ai-tier-icon">❖❖</span>
                 VETERAN
-                <div class="hint" style="margin-top: 0.5rem">Hunting Logic</div>
+                <div class="hint">Hunting Logic</div>
             </button>
 
             <!-- Admiral -->
@@ -50,15 +48,14 @@
                 hx-swap="innerHTML"
                 hx-push-url="true"
             >
-                <span style="display: block; font-size: 1.5rem; margin-bottom: 0.5rem;">❖❖❖</span>
+                <span class="ai-tier-icon">❖❖❖</span>
                 ADMIRAL
-                <div class="hint" style="margin-top: 0.5rem">Probability Math</div>
+                <div class="hint">Probability Math</div>
             </button>
 
             <!-- PSY-OPS (LLM) -->
             <button
-                class="btn"
-                style="border-color: var(--phosphor-alert); color: var(--phosphor-alert); box-shadow: 0 0 5px var(--phosphor-alert);"
+                class="btn btn-alert"
                 hx-post="/ai/start"
                 hx-vals='{"tier": "psy-ops"}'
                 hx-target="#main"
@@ -66,15 +63,15 @@
                 hx-push-url="true"
                 hx-indicator="#ai-loader"
             >
-                <span style="display: block; font-size: 1.5rem; margin-bottom: 0.5rem;">☠</span>
+                <span class="ai-tier-icon">☠</span>
                 PSY-OPS
-                <div class="hint" style="margin-top: 0.5rem; color: var(--phosphor-alert);">GPT-4 Powered</div>
+                <div class="hint hint-alert">GPT-4 Powered</div>
             </button>
         </div>
 
         <!-- Loader for LLM Latency -->
-        <div id="ai-loader" class="htmx-indicator" style="text-align:center; margin-top:2rem;">
-            <div class="blink" style="color: var(--phosphor-alert); letter-spacing: 2px;">
+        <div id="ai-loader" class="htmx-indicator ai-loader">
+            <div class="blink ai-loader-text">
                 >> ESTABLISHING UPLINK WITH AI CORE...
             </div>
         </div>

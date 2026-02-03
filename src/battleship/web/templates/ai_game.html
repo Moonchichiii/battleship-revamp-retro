@@ -1,5 +1,8 @@
-{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
-endif %} {% block content %}
+{% extends "base.html" %}
+
+{% block title %}Simulation Active — Battleship{% endblock %}
+
+{% block content %}
 <div class="dashboard-grid">
     <div class="site-header">
         <h2>Simulation Active: {{ tier|upper }}</h2>
@@ -9,8 +12,7 @@ endif %} {% block content %}
     <section class="game-status">
         <h3>Battle Log</h3>
         <div id="ai-status" class="status-log">
-            {{ status_message | default("Simulation initialized. Engaging
-            enemy.") }}
+            {{ status_message | default("Simulation initialized. Engaging enemy.") }}
         </div>
     </section>
 

@@ -1,9 +1,12 @@
-{% if not request.headers.get("HX-Request") %}{% extends "base.html" %}{% endif
-%} {% block content %}
+{% extends "base.html" %}
+
+{% block title %}Access Terminal — Sign In{% endblock %}
+
+{% block content %}
 <section id="signin" class="panel auth-panel is-active" role="tabpanel">
     <h2>Access Terminal // Sign In</h2>
 
-    {% if request.query_params.get('error') == 'oauth_failed' %}
+    {% if request.query_params.get("error") == "oauth_failed" %}
     <div class="notice error">[ERROR] AUTHENTICATION FAILED. PLEASE RETRY.</div>
     {% endif %}
 

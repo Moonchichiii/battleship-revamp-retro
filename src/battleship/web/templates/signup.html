@@ -1,5 +1,8 @@
-{% if not request.headers.get("HX-Request") %}{% extends "base.html" %}{% endif
-%} {% block content %}
+{% extends "base.html" %}
+
+{% block title %}Register — Battleship{% endblock %}
+
+{% block content %}
 <section id="signup" class="panel auth-panel is-active" role="tabpanel">
     <h2>New Registration</h2>
 
@@ -133,37 +136,47 @@
 </section>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const pwd = document.getElementById("signup-password");
-        const bar = document.getElementById("strength-fill");
-        const txt = document.getElementById("strength-text");
+    const initPasswordStrength = (root) => {
+        const container = root || document;
+        const pwd = container.getElementById("signup-password");
+        const bar = container.getElementById("strength-fill");
+        const txt = container.getElementById("strength-text");
 
-        if (pwd && bar && txt) {
-            pwd.addEventListener("input", function () {
-                const val = this.value;
-                let score = 0;
-                if (val.length >= 8) score++;
-                if (/[A-Z]/.test(val)) score++;
-                if (/[0-9]/.test(val)) score++;
-                if (/[^A-Za-z0-9]/.test(val)) score++;
-
-                bar.className = "strength-fill";
-                if (score > 3) {
-                    bar.classList.add("strong");
-                    txt.innerText = "[ STRONG ]";
-                } else if (score > 1) {
-                    bar.classList.add("medium");
-                    txt.innerText = "[ ACCEPTABLE ]";
-                } else if (val.length) {
-                    bar.classList.add("weak");
-                    txt.innerText = "[ WEAK ]";
-                } else {
-                    txt.innerText = "";
-                }
-
-                bar.style.width = score * 25 + "%";
-            });
+        if (!pwd || !bar || !txt || pwd.dataset.bound) {
+            return;
         }
-    });
+
+        pwd.dataset.bound = "true";
+
+        pwd.addEventListener("input", function () {
+            const val = this.value;
+            let score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            bar.className = "strength-fill";
+            if (score > 3) {
+                bar.classList.add("strong");
+                txt.innerText = "[ STRONG ]";
+            } else if (score > 1) {
+                bar.classList.add("medium");
+                txt.innerText = "[ ACCEPTABLE ]";
+            } else if (val.length) {
+                bar.classList.add("weak");
+                txt.innerText = "[ WEAK ]";
+            } else {
+                txt.innerText = "";
+            }
+
+            bar.style.width = `${score * 25}%`;
+        });
+    };
+
+    document.addEventListener("DOMContentLoaded", () => initPasswordStrength(document));
+    document.addEventListener("htmx:load", (evt) =>
+        initPasswordStrength(evt.detail.elt)
+    );
 </script>
 {% endblock %}
