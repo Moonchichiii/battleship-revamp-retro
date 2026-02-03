@@ -7,7 +7,7 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
-from src.battleship.main import app
+from battleship.main import app
 
 # pylint: disable=redefined-outer-name
 

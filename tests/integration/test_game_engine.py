@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.battleship.game.engine import DEFAULT_BOARD_SIZE, Game
+from battleship.game.engine import DEFAULT_BOARD_SIZE, Game
 
 STANDARD_SIZE = 8
 

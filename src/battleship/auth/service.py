@@ -10,14 +10,14 @@ from typing import TYPE_CHECKING, cast
 
 from decouple import config
 
-from src.battleship.core.result import ServiceResult
-from src.battleship.core.security import (
+from battleship.core.result import ServiceResult
+from battleship.core.security import (
     create_access_token,
     hash_password,
     validate_password_strength,
     verify_password,
 )
-from src.battleship.users import models as user_models
+from battleship.users import models as user_models
 
 if TYPE_CHECKING:
     from uuid import UUID

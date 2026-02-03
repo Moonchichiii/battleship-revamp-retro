@@ -17,11 +17,11 @@ from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, Session, mapped_column, relationship
 
-from src.battleship.core.database import TESTING, Base, get_db
-from src.battleship.core.security import verify_token
+from battleship.core.database import TESTING, Base, get_db
+from battleship.core.security import verify_token
 
 if TYPE_CHECKING:
-    from src.battleship.api.routes.scores import Score
+    from battleship.api.routes.scores import Score
 
 security = HTTPBearer(auto_error=False)
 

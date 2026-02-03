@@ -8,11 +8,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from src.battleship.auth.schemas import TokenResponse, UserInfo
-from src.battleship.auth.service import AuthServiceLogic
-from src.battleship.auth.sso import github_sso, google_sso
-from src.battleship.auth.views import AuthRenderer
-from src.battleship.users import models as user_models
+from battleship.auth.schemas import TokenResponse, UserInfo
+from battleship.auth.service import AuthServiceLogic
+from battleship.auth.sso import github_sso, google_sso
+from battleship.auth.views import AuthRenderer
+from battleship.users import models as user_models
 
 logger = logging.getLogger(__name__)
 

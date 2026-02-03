@@ -20,18 +20,18 @@ from sqlalchemy import text
 from starlette.middleware.base import RequestResponseEndpoint
 from starlette.middleware.sessions import SessionMiddleware
 
-from src.battleship.api.routes import scores as scores_routes
-from src.battleship.api.routes.ai import router as ai_router
-from src.battleship.api.routes.auth import router as auth_router
-from src.battleship.api.routes.game import router as game_router
-from src.battleship.core.config import (
+from battleship.api.routes import scores as scores_routes
+from battleship.api.routes.ai import router as ai_router
+from battleship.api.routes.auth import router as auth_router
+from battleship.api.routes.game import router as game_router
+from battleship.core.config import (
     APP_VERSION,
     ENVIRONMENT,
     GITHUB_OAUTH_ENABLED,
     GOOGLE_OAUTH_ENABLED,
     SECRET_KEY,
 )
-from src.battleship.core.database import TESTING, Base, engine
+from battleship.core.database import TESTING, Base, engine
 
 logger = logging.getLogger(__name__)
 

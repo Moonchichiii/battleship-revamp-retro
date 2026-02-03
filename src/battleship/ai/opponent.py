@@ -9,9 +9,9 @@ import anyio
 import httpx
 
 if TYPE_CHECKING:
-    from src.battleship.game.engine import Game
+    from battleship.game.engine import Game
 
-from src.battleship.ai.strategies import AIMove, BattleshipAI
+from battleship.ai.strategies import AIMove, BattleshipAI
 
 
 class LLMAIOpponent(BattleshipAI):
@@ -252,7 +252,7 @@ class AiOpponent:
 
     def _remaining_ship_sizes(self) -> list[int]:
         """Estimate remaining ships based on board size and hits."""
-        from src.battleship.game.engine import FLEET_CONFIGS
+        from battleship.game.engine import FLEET_CONFIGS
 
         fleet = FLEET_CONFIGS.get(self.game.size, FLEET_CONFIGS[8])
         sunk_hits = len(self.game.hits)

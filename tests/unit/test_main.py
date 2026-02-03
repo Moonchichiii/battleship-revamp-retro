@@ -8,7 +8,7 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
-from src.battleship.main import app
+from battleship.main import app
 
 
 @pytest.fixture()
@@ -46,5 +46,5 @@ def test_game_page(client_fx: TestClient) -> None:
 
 def test_basic_import_module() -> None:
     """Smoke test that the main module can be imported."""
-    mod = importlib.import_module("src.battleship.main")
+    mod = importlib.import_module("battleship.main")
     assert hasattr(mod, "app")

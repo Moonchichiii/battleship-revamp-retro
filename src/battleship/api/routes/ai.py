@@ -12,9 +12,9 @@ from decouple import config
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import HTMLResponse
 
-from src.battleship.ai.strategies import create_ai
-from src.battleship.game.engine import Game
-from src.battleship.users.models import require_authenticated_user
+from battleship.ai.strategies import create_ai
+from battleship.game.engine import Game
+from battleship.users.models import require_authenticated_user
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -245,7 +245,7 @@ def start_game(
         if not api_key:
             ai_opponent = create_ai("admiral", player_game)
         else:
-            from src.battleship.ai.opponent import LLMAIOpponent
+            from battleship.ai.opponent import LLMAIOpponent
 
             ai_opponent = LLMAIOpponent(player_game, api_key=api_key)
     else:

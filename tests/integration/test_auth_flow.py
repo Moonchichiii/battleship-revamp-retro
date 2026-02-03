@@ -9,9 +9,9 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from src.battleship.core.database import SessionLocal
-from src.battleship.main import app
-from src.battleship.users.models import AuthService
+from battleship.core.database import SessionLocal
+from battleship.main import app
+from battleship.users.models import AuthService
 
 # --- Constants ---
 HTTP_OK = 200

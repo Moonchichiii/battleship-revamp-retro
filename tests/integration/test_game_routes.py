@@ -7,8 +7,8 @@ from http import HTTPStatus
 import pytest
 from fastapi.testclient import TestClient
 
-from src.battleship.api.routes.game import _SESSIONS
-from src.battleship.main import app
+from battleship.api.routes.game import _SESSIONS
+from battleship.main import app
 
 DEFAULT_SIZE = 8
 
