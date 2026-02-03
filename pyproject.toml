@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Retro Battleship game with FastAPI, HTMX, and modern DevOps."
 authors = ["Your Name <you@example.com>"]
 readme = "README.md"
-packages = [{ include = "src" }]
+packages = [{ include = "battleship", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.14"
@@ -48,4 +48,4 @@ ignore = ["E501"]
 "src/battleship/auth/schemas.py" = ["S105"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["src"]
+known-first-party = ["battleship"]

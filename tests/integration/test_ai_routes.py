@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import pytest
 from fastapi.testclient import TestClient
 
-from src.battleship.main import app
+from battleship.main import app
 
 if TYPE_CHECKING:
     pass
@@ -38,7 +38,7 @@ def client() -> TestClient:
 @pytest.fixture(autouse=True)
 def _cleanup_sessions() -> Generator[None, None, None]:
     yield
-    from src.battleship.api.routes.ai import _SESSIONS
+    from battleship.api.routes.ai import _SESSIONS
 
     _SESSIONS.clear()
 
@@ -46,7 +46,7 @@ def _cleanup_sessions() -> Generator[None, None, None]:
 @pytest.fixture(autouse=True)
 def _override_auth_dependency() -> Generator[None, None, None]:
     """Fake an authenticated user."""
-    from src.battleship.users.models import require_authenticated_user
+    from battleship.users.models import require_authenticated_user
 
     def _fake_auth_user() -> _User:
         return _User(id="u-1", username="tester")

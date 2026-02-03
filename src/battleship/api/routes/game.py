@@ -13,9 +13,9 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from src.battleship.ai.opponent import AiOpponent
-from src.battleship.game.engine import DEFAULT_BOARD_SIZE, Game
-from src.battleship.users.models import (
+from battleship.ai.opponent import AiOpponent
+from battleship.game.engine import DEFAULT_BOARD_SIZE, Game
+from battleship.users.models import (
     AuthenticatedUser,
     AuthService,
     get_auth_service,
@@ -115,7 +115,7 @@ async def save_user_score(
 ) -> None:
     """Persist a finished game's score."""
     try:
-        from src.battleship.api.routes.scores import ScoreService, save_game_score
+        from battleship.api.routes.scores import ScoreService, save_game_score
 
         stats = game.get_stats()
         if not stats["game_over"]:

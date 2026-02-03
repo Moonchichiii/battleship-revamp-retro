@@ -14,10 +14,10 @@ from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func, selec
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.battleship.core.database import Base
+from battleship.core.database import Base
 
 if TYPE_CHECKING:
-    from src.battleship.users.models import (
+    from battleship.users.models import (
         AuthService,
         User,
         get_auth_service,
@@ -96,7 +96,7 @@ class ScoreService:
         self, limit: int = 10, board_size: int = 8
     ) -> list[dict[str, Any]]:
         """Get top scores using composite index (board_size, score, shots)."""
-        from src.battleship.users.models import User
+        from battleship.users.models import User
 
         stmt = (
             select(Score, User)

@@ -1,6 +1,8 @@
-{% if not request.headers.get("HX-Request") %} {% extends "base.html" %} {%
-endif %} {% block title %}Battleship Revamp — Top Scores{% endblock %} {% block
-content %}
+{% extends "base.html" %}
+
+{% block title %}Battleship Revamp — Top Scores{% endblock %}
+
+{% block content %}
 <section id="scores" class="panel">
     <h2>Top Scores</h2>
 

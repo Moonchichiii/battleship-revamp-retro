@@ -1,4 +1,4 @@
-﻿"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
+"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
 
 from __future__ import annotations
 
@@ -27,9 +27,9 @@ TEST_SCHEMA = f"test_{secrets.token_hex(6)}"
 @pytest.fixture(scope="session", autouse=True)
 def _db_bootstrap() -> Generator[None, None, None]:
     """Create isolated test schema and tables, tear down on exit."""
-    from src.battleship.core.database import Base, engine
+    from battleship.core.database import Base, engine
 
-    import_module("src.battleship.users.models")
+    import_module("battleship.users.models")
 
     deadline = time.time() + 10
     while True:
@@ -61,7 +61,7 @@ def _db_bootstrap() -> Generator[None, None, None]:
 @pytest.fixture(autouse=True)
 def _db_clean_between_tests() -> Generator[None, None, None]:
     """Truncate all tables between tests."""
-    from src.battleship.core.database import Base, engine
+    from battleship.core.database import Base, engine
 
     yield
     tables = ",".join(t.name for t in Base.metadata.sorted_tables)

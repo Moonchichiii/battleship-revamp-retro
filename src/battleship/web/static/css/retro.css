@@ -315,6 +315,11 @@ body::after {
     text-transform: uppercase;
 }
 
+.footer-latency {
+    margin-left: 1rem;
+    opacity: 0.7;
+}
+
 .status-indicator {
     width: 0.6rem;
     height: 0.6rem;
@@ -323,10 +328,64 @@ body::after {
     box-shadow: 0 0 8px var(--phosphor-primary);
 }
 
+.footer-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+}
+
+.footer-divider {
+    margin: 0 0.5rem;
+    opacity: 0.7;
+}
+
 /* subtle right-side text */
 .footer-meta {
     text-transform: uppercase;
     letter-spacing: 0.08em;
+}
+
+.ai-controls {
+    margin-top: 2rem;
+}
+
+.ai-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.ai-tier-icon {
+    display: block;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.btn-alert {
+    border-color: var(--phosphor-alert);
+    color: var(--phosphor-alert);
+    box-shadow: 0 0 5px var(--phosphor-alert);
+}
+
+.btn-alert:hover {
+    background: var(--phosphor-alert);
+    color: #000;
+    border-color: var(--phosphor-alert);
+}
+
+.hint-alert {
+    color: var(--phosphor-alert);
+}
+
+.ai-loader {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.ai-loader-text {
+    color: var(--phosphor-alert);
+    letter-spacing: 2px;
 }
 
 .hero-panel {

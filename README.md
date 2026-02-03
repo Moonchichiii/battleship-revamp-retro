@@ -8,7 +8,7 @@
 
 > *"Sometimes the real enemy is your own targeting system."*
 
-A hyper-optimized, retro-styled Battleship game built for the modern web. Features a **CRT-terminal UI**, server-side state validation, advanced **AI opponents** (including LLM-powered "Psy-Ops"), and secure OAuth authentication.
+A retro-styled Battleship game built for the modern web. The current build focuses on the core game loop, CRT-terminal UI, and server-side state validation. Advanced AI tiers and OAuth authentication are **experimental** and may be disabled while they are stabilized.
 
 ---
 
@@ -25,11 +25,11 @@ A hyper-optimized, retro-styled Battleship game built for the modern web. Featur
 
 ## Features
 
-- **Tactical AI:** Challenge 3 tiers of algorithmic opponents (Rookie, Veteran, Admiral) plus a GPT-4 powered "Psy-Ops" tier.
+- **Tactical AI (Experimental):** Algorithmic opponents (Rookie, Veteran, Admiral) with ongoing work on higher-difficulty behavior.
 - **Retro UI:** Custom CRT shaders, glowing phosphorus text, and raw ASCII art.
 - **Sound Engine:** Procedural audio synthesis via Web Audio API (no heavy assets).
-- **Secure Auth:** OAuth (GitHub/Google) and local Argon2 hashing with secure session management.
-- **Leaderboards:** Optimized PostgreSQL composite indexes for instant ranking queries.
+- **Secure Auth (Experimental):** OAuth (GitHub/Google) and local Argon2 hashing with secure session management.
+- **Leaderboards (Experimental):** Optimized PostgreSQL composite indexes for instant ranking queries.
 - **Zero-Lag:** Powered by **FastAPI** and **HTMX** for SPA-like performance without the bundle size.
 
 [Back to top](#table-of-contents)
@@ -41,7 +41,7 @@ A hyper-optimized, retro-styled Battleship game built for the modern web. Featur
 - **Core:** Python 3.12, FastAPI
 - **Frontend:** HTMX, Jinja2, CSS3 (No JS Frameworks)
 - **Database:** PostgreSQL 14+ (Async + Sync support)
-- **Security:** Argon2, OAuth2, Secure Cookies
+- **Security:** Argon2, OAuth2, Secure Cookies (experimental)
 - **Deployment:** Docker, Render
 - **DevOps:** Ruff (Linting), Pytest, Pre-commit
 
@@ -75,11 +75,11 @@ If you prefer running without Docker:
 
 ```bash
 # Install dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements/dev.txt
 
 # Run Postgres (ensure variables in .env match your local DB)
 # Then start server:
-uvicorn src.battleship.main:app --reload
+uvicorn battleship.main:app --reload
 ```
 
 [Back to top](#table-of-contents)
