@@ -1,4 +1,4 @@
--r requirements.txt
+-r base.txt
 
 # Code quality
 ruff==0.5.6

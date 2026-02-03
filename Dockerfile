@@ -11,9 +11,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /wheels
 
 # Copy requirements and create wheels (include dependencies)
-COPY requirements.txt .
+COPY requirements/base.txt ./requirements/base.txt
 RUN pip install --upgrade pip \
-    && pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
+    && pip wheel --no-cache-dir --wheel-dir /wheels -r requirements/base.txt
 
 # Production stage
 FROM python:3.12-slim AS production
@@ -39,11 +39,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Copy wheels from builder stage
 COPY --from=builder /wheels /wheels
-COPY requirements.txt .
+COPY requirements/base.txt ./requirements/base.txt
 
 # Install Python packages from wheels
-RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
-    && rm -rf /wheels requirements.txt
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements/base.txt \
+    && rm -rf /wheels requirements
 
 # Copy application code
 COPY --chown=appuser:appuser . .

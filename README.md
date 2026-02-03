@@ -75,7 +75,7 @@ If you prefer running without Docker:
 
 ```bash
 # Install dependencies
-pip install -r requirements-dev.txt
+pip install -r requirements/dev.txt
 
 # Run Postgres (ensure variables in .env match your local DB)
 # Then start server:
