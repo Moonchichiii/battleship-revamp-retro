@@ -43,10 +43,10 @@ DB_AUTO_CREATE = (
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if DB_AUTO_CREATE:
-        try:            
+        try:
             await run_in_threadpool(Base.metadata.create_all, bind=engine)
             logger.info("Database tables ensured (SQLAlchemy)")
-            
+
             script_path = Path("scripts/init.sql")
             if script_path.exists():
                 sql_script = script_path.read_text()
