@@ -1,4 +1,4 @@
-﻿"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
+"""Pytest DB bootstrap: real DB, isolated schema; password comes from .env."""
 
 from __future__ import annotations
 
