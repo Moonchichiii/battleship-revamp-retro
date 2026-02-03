@@ -154,7 +154,9 @@
         </nav>
 
         <main id="main" class="container" role="main">
+{% endif %}
             {% block content %}{% endblock %}
+{% if not is_htmx %}
         </main>
 
         <footer class="site-footer" role="contentinfo">
@@ -195,6 +197,4 @@
         </script>
     </body>
 </html>
-{% else %}
-{% block content %}{% endblock %}
 {% endif %}
